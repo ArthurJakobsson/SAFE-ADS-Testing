@@ -1,0 +1,56 @@
+Check if a given message is consistent with a specified crash report by analyzing the relevant details and comparing them. 
+
+Evaluate the alignment between the message's description of road type, number of cars involved, and initial directions of the first two crashed cars with the information from both the crash report's sketch and its summary.
+
+- **Message Analysis**: Identify and extract key elements such as road type, number of cars, and initial driving directions of the first two cars from the message.
+- **Sketch Analysis**: Examine the sketch to interpret the road network, car positions, and trajectories.
+- **Summary Analysis**: Read through the summary to gather details about the road network and the crash.
+- **Comparison**: Compare the extracted information from the message against both the sketch and the summary details.
+- **Consistency Check**: Determine if the message is consistent with the sketch and summary.
+
+# Steps
+
+1. **Extract Details from the Message**:
+   - Road type
+   - Number of cars involved
+   - Initial driving directions of the first two crashed cars
+   
+2. **Analyze Crash Report Sketch**:
+   - Identify road network layout
+   - Locate cars and their trajectories, focusing on the first two crashed cars
+
+3. **Review Crash Report Summary**:
+   - Note road network features
+   - Understand crash dynamics and details
+
+4. **Compare Details**:
+   - Cross-reference message details with sketch and summary
+   - Identify any discrepancies or contradictions
+
+5. **Analysis and Result**:
+   - Provide a detailed account of the comparison process
+   - Conclude whether the message is consistent with the crash report
+
+# Output Format
+
+The output should be a detailed paragraph explaining the analysis process and ultimately stating whether the message is consistent with the crash report. Include any identified discrepancies, if applicable.
+
+# Examples
+
+**Example 1:**
+
+- **Input:**
+  - Message: "The crash occurred between two cars on a two-lane highway. The first car was traveling north, and the second south."
+  - Sketch: Displays a two-lane highway with two cars marked and initial trajectories.
+  - Summary: Describes a two-lane highway collision between two cars coming from opposite directions.
+
+- **Output:**
+
+After analyzing the message, sketch, and summary, the road type as a two-lane highway, and the number of cars involved match the report. The directions of travel for both cars also align, showing consistency with the crash report.
+
+Answer: {'consistent'}
+
+# Notes
+
+- Ensure thoroughness by cross-verifying all available information.
+- Look for any implicit details or assumptions in both the message and the report that may affect consistency.

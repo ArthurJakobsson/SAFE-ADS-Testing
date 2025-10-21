@@ -1,0 +1,85 @@
+# Analysis Process
+
+## Step 1: Extract Actors Information
+
+1. **Vehicle Entity Recognition**
+   Based on the provided crash summary, there are two vehicles involved. Therefore, under the Actors field, include both *Vehicle_1* and *Vehicle_2*.
+
+2. **Vehicle Model Recognition**
+   - **Vehicle_1**:
+     - **Description:** “a 2001 Chrysler Sebring, 4-door sedan”
+     - **Assigned Model:** Sedan
+
+   - **Vehicle_2**:
+     - **Description:** “a 1999 Chevrolet Blazer, 4-door utility vehicle”
+     - **Assigned Model:** SUV
+
+3. **Vehicle Movement Behavior Recognition**
+   From the crash summary and the sketch details:
+   - **Vehicle_1** was traveling east in the eastbound left-turn lane of a three-lane, two-way private road, and was approaching a T-intersection. The driver of V1 attempted to turn left at the intersection.
+   - **Vehicle_2** was traveling south in the southbound through-lane of a three-lane, two-way road, and was approaching the same intersection as V1.
+   According to the summary, Vehicle_1 is driving on the stem road and Vehicle_2 is driving on the main road.
+   It can also be seen from the sketch that Vehicle_1 is driving on the stem road, and according to the indication of '->N' in the figure, it can be known that the direction of the stem road is west.
+   Therefore, the Initial position of **Vehicle_1** is W2E and the Initial position of **Vehicle_2** is N2S.
+   - The summary does not state Vehicle_1 and Vehicle_2's speed, but the **sketch** shows 'Speed limit 55 mph for all legs'. Therefore, assume:
+     - **Vehicle_1 Speed:** 55 mph
+     - **Vehicle_2 Speed:** 55 mph
+
+   **Final Assignments:**
+   - **Vehicle_1:**
+     - *Initial Position:* W2E
+     - *Actions:* Turn left
+     - *Speed:* 55
+   - **Vehicle_2:**
+     - *Initial Position:* N2S
+     - *Actions:* Move forward
+     - *Speed:* 55
+
+---
+
+## Step 2: Extract Road Network
+
+- The summary indicates a three-lane, two-way.
+- **Number of Lanes:** 3
+- **Stem road direction:** West
+
+---
+
+## Step 3: Extract Environment
+
+- The summary states “It was daylight, the sky was clear”
+- **Time:** Daytime
+- **Weather:** Sunny
+
+---
+
+## Final Output
+
+```json
+{
+  "Actors": [
+    {
+      "Vehicle_1": {
+        "Model": "Sedan",
+        "Initial_position": "W2E",
+        "Actions": "Turn left",
+        "Speed": "55"
+      },
+      "Vehicle_2": {
+        "Model": "SUV",
+        "Initial_position": "N2S",
+        "Actions": "Move forward",
+        "Speed": "55"
+      }
+    }
+  ],
+  "Road network": {
+    "Number of lanes": "3",
+    "Stem road direction": "West"
+  },
+  "Env": {
+    "Time": "Daytime",
+    "Weather": "Sunny"
+  }
+}
+```

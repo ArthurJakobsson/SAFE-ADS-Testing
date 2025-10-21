@@ -1,0 +1,13 @@
+Actors:
+  Vehicle_x:
+    model: 'vehicle model - Sedan, SUV, Minivan, Pickup, Semi Truck'
+    Initial_position: 'Main road or On-ramp'
+    Actions: 'Move forward or Merge or Turn left or Turn right'
+    Speed: 'speed in mph'
+Road network:
+  Road type: 'Merging'
+  Number of lanes: 'number of lanes'
+Env:
+  Time: 'Daytime or Nighttime'
+  Weather: '[Sunny, Cloudy, Overcast, Rainy, Snowy, Foggy, Windy, Clear]'
+Scenario: 'xxx'

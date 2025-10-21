@@ -1,0 +1,13 @@
+Actors:
+  Vehicle_x:
+    model: 'vehicle model - Sedan, SUV, Minivan, Pickup, Semi Truck'
+    Initial_position: 'W2E or E2W or S2N or N2S'
+    Actions: 'Move forward or turn left or turn right'
+    Speed: 'speed in mph'
+Road network:
+  Road type: 'Intersection'
+  Number of lans: 'number of lanes'
+Env:
+  Time: 'Daytime or Nighttime'
+  Weather: '[Sunny, Cloudy, Overcast, Rainy, Snowy, Foggy, Windy, Clear]'
+Scenario: 'xxx'

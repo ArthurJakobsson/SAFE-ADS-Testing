@@ -1,0 +1,31 @@
+I have a multi-modality dataset on car crashes, where each crash includes a sketch (graphical) and a summary (text).
+
+In the crash sketches:
+- Road networks, vehicles, trajectories, and crash details are depicted. Vehicles are labeled as V1, V2, etc., typically in colored (red or blue or grey) rectangular blocks. **Ignore these vehicles** when analyzing road networks.
+
+In the crash summaries:
+- Each summary describes the road network, traffic participants, trajectories, and environmental details.
+
+### Your Tasks:
+1. **Extract the road network** from the crash summary. Select one of these five values:
+    - **Intersection**, **T-intersection**, **Straight**, **Curve**, **Merging**.
+
+2. **Extract the number of cars involved in the crash** from the crash summary.
+
+3. **Determine the initial driving direction of the cars** from the crash summary. Select one of these four values:
+    - **same direction**, **opposite direction**, **crossing traffic**, **merging**
+    Attention: 'crossing traffic' can only be used when the road type is Intersection or T-intersection.
+
+### Important Details:
+- **Intersection**: Formed by crossing roads, with four openings.
+- **T-intersection**: Two roads meeting in a "T" shape, with three openings.
+- **Merge**: Typically involves a straight and a curved road meeting together.
+
+### Output Format:
+Provide answers in this structure: {'Road type': '<your answer>', 'Number of cars': <your answer>, 'Driving direction': '<your answer>'}
+
+#### Example Outputs:
+- {'Road type': 'Intersection', 'Number of cars': 2, 'Driving direction': 'crossing traffic'}
+- {'Road type': 'Straight', 'Number of cars': 3, 'Driving direction': 'same direction'}
+
+Next, I will provide you with an example and the analysis process to help you better understand this job.

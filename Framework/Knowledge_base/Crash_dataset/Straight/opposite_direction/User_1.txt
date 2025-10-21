@@ -1,0 +1,79 @@
+# Analysis Process
+
+## Step 1: Extract Actors Information
+
+1. **Vehicle Entity Recognition**
+   Based on the provided crash summary, there are two vehicles involved. Therefore, under the Actors field, include both *Vehicle_1* and *Vehicle_2*.
+
+2. **Vehicle Model Recognition**
+   - **Vehicle_1**:
+     - **Description:** “a 1999 Chevrolet S10, 2-door pickup truck”
+     - **Assigned Model:** Pickup
+
+   - **Vehicle_2**:
+     - **Description:** “a unknown year/make/model tractor pulling one trailer”
+     - Although the exact model is unknown, based on the available information, the most suitable value for *Vehicle_2* is **Pickup** because the vehicle's length clearly does not match that of a Semi truck, yet is larger than a minivan.
+
+3. **Vehicle Movement Behavior Recognition**
+   From the crash summary and the sketch details:
+   - **Vehicle_1** was traveling from south to north. Due to falling asleep, it entered the wrong lane, causing a collision with *Vehicle_2*, which was traveling from north to south.
+   - The summary does not state Vehicle_1 and Vehicle_2's speed, but the **sketch** shows a speed limit of 55 mph. Therefore, assume:
+     - **Vehicle_1 Speed:** 55 mph
+     - **Vehicle_2 Speed:** 55 mph
+
+   **Final Assignments:**
+   - **Vehicle_1:**
+     - *Initial Position:* S2N
+     - *Actions:* Enter the Wrong Way
+     - *Speed:* 55
+   - **Vehicle_2:**
+     - *Initial Position:* N2S
+     - *Actions:* Move Forward
+     - *Speed:* 55
+
+---
+
+## Step 2: Extract Road Network
+
+- The summary indicates a two-lane, two-way roadway.
+- **Number of Lanes:** 2
+
+---
+
+## Step 3: Extract Environment
+
+- The summary states “It was dawn, the skies were cloudy.”
+- **Time:** Daytime
+- **Weather:** Cloudy
+
+---
+
+## Final Output
+
+```json
+{
+  "Actors": [
+    {
+      "Vehicle_1": {
+        "Model": "Pickup",
+        "Initial_position": "S2N",
+        "Actions": "Enter the Wrong Way",
+        "Speed": "55"
+      },
+      "Vehicle_2": {
+        "Model": "Pickup",
+        "Initial_position": "N2S",
+        "Actions": "Move Forward",
+        "Speed": "55"
+      }
+    }
+  ],
+  "Road network": {
+    "Number of lanes": "2"
+  },
+  "Env": {
+    "Time": "Daytime",
+    "Weather": "Cloudy"
+  }
+}
+```

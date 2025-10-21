@@ -1,0 +1,78 @@
+# Analysis Process
+
+## Step 1: Extract Actors Information
+
+1. **Vehicle Entity Recognition**
+   Based on the provided crash summary, there are two vehicles involved. Therefore, under the Actors field, include both *Vehicle_1* and *Vehicle_2*.
+
+2. **Vehicle Model Recognition**
+   - **Vehicle_1**:
+     - **Description:** “a 2000 Chevrolet Malibu, 4-door sedan”
+     - **Assigned Model:** Sedan
+
+   - **Vehicle_2**:
+     - **Description:** “a 1998 International tractor-trailer”
+     - **Assigned Model:** Semi Truck
+
+3. **Vehicle Movement Behavior Recognition**
+   From the crash summary and the sketch details:
+   - **Vehicle_1** and **Vehicle_2** were both traveling from South to North. **Vehicle_1** suddenly changed lanes and collided with **Vehicle_2** traveling in the same direction.
+   - The summary does not state Vehicle_1's speed, but the **sketch** shows "speed limit 70 mph for cars, 55 mph for trucks. Therefore, assume:
+     - **Vehicle_1 Speed:** 70 mph
+     - **Vehicle_2 Speed:** 55 mph
+
+   **Final Assignments:**
+   - **Vehicle_1:**
+     - *Initial Position:* S2N
+     - *Actions:* Changing Lane
+     - *Speed:* 70
+   - **Vehicle_2:**
+     - *Initial Position: S2N
+     - *Actions:* Move Forward
+     - *Speed:* 55
+
+---
+
+## Step 2: Extract Road Network
+
+- The summary indicates a four-lane, divided freeway.
+- **Number of Lanes:** 4
+
+---
+
+## Step 3: Extract Environment
+
+- **Time:** N/A (not provided in the summary)
+- **Weather:** N/A (not provided in the summary)
+
+---
+
+## Final Output
+
+```json
+{
+  "Actors": [
+    {
+      "Vehicle_1": {
+        "Model": "Sedan",
+        "Initial_position": "S2N",
+        "Actions": "Changing Lane",
+        "Speed": "70"
+      },
+      "Vehicle_2": {
+        "Model": "Semi Truck",
+        "Initial_position": "S2N",
+        "Actions": "Move Forward",
+        "Speed": "55"
+      }
+    }
+  ],
+  "Road network": {
+    "Number of lanes": "4"
+  },
+  "Env": {
+    "Time": "N/A",
+    "Weather": "N/A"
+  }
+}
+```
