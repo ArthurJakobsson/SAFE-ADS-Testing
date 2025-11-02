@@ -204,10 +204,8 @@ def main():
     ID_list = os.listdir(args.data_path)
     records = [str(ID) for ID in ID_list]
 
-    # ----------for RQ 1
-
     # Prompts preparation
-    example_sketch = encode_image(r'./Knowledge_base/Meta_prompts/example_sketch.jpg')  # Curve example 109536
+    example_sketch = encode_image(r'./Knowledge_base/Meta_prompts/example_sketch.jpg')
     with open(
             r'./Knowledge_base/Meta_prompts/example_summary.txt',
             'r', encoding='utf-8') as file:

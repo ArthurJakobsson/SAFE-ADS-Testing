@@ -46,24 +46,6 @@ def Lane(S_point, Lane_len, Lane_width, lane_num, towards='Hor'):
     return lane_list
 
 def Straight(road_structure, towards, middle_point):
-    '''
-    Args:
-        road_structure:
-            Road_type: Straight
-            Left_lane:
-                - Num: 2
-                  len: 100
-                  width: 4
-            Right_lane:
-                - Num: 1
-                  len: 100
-                  width: 4
-        towards: Hor or Ver
-        middle_point: default(-107, 20, 100)
-
-    Returns:
-        road_list
-    '''
     road_list = []
 
     # Get road args
@@ -1064,7 +1046,7 @@ def get_vn_type(model):
 def convert_dsl(DSLs, meta_msg):
     dsl_yaml = {}
     for case in meta_msg:
-        scenario_id = case[-1] # '128697'
+        scenario_id = case[-1] 
         dsl = get_dsl(DSLs,scenario_id)
         Actors = dsl['Actors'][0]
         Road_network = dsl['Road network']
@@ -1096,8 +1078,6 @@ def convert_dsl(DSLs, meta_msg):
             actor_dict = {}
             v_counter = 1
             for ID, vehicle in Actors.items():
-                # ID = 'Vehicle_1'
-                # vehicle = {'Model': 'Sedan', 'Initial_position': 'W2E', 'Actions': 'Move forward', 'Speed': 'N/A'}
                 # Vn_traj
                 actor_dict[f'V{v_counter}_traj'] = get_vn_traj_c(vehicle['Initial_position'], vehicle['Actions'])
                 # Vn_type
@@ -1112,8 +1092,6 @@ def convert_dsl(DSLs, meta_msg):
             actor_dict = {}
             v_counter = 1
             for ID, vehicle in Actors.items():
-                # ID = 'Vehicle_1'
-                # vehicle = {'Model': 'SUV', 'Initial_position': 'E2W', 'Actions': 'Turn left', 'Speed': '55'}
                 # Vn_traj
                 actor_dict[f'V{v_counter}_traj'] = get_vn_traj_x(vehicle['Initial_position'],vehicle['Actions'])
                 # Vn_type
@@ -1130,8 +1108,6 @@ def convert_dsl(DSLs, meta_msg):
             actor_dict = {}
             v_counter = 1
             for ID, vehicle in Actors.items():
-                # ID = 'Vehicle_1'
-                # vehicle = {'Model': 'SUV', 'Initial_position': 'E2W', 'Actions': 'Turn left', 'Speed': '55'}
                 # Vn_traj
                 actor_dict[f'V{v_counter}_traj'] = get_vn_traj_t(vehicle['Initial_position'], vehicle['Actions'], Road_network['Stem road direction'])
                 # Vn_type
@@ -1147,8 +1123,6 @@ def convert_dsl(DSLs, meta_msg):
             actor_dict = {}
             v_counter = 1
             for ID, vehicle in Actors.items():
-                # ID = 'Vehicle_1'
-                # vehicle = {'Model': 'SUV', 'Initial_position': 'E2W', 'Actions': 'Turn left', 'Speed': '55'}
                 # Vn_traj
                 actor_dict[f'V{v_counter}_traj'] = get_vn_traj_r(vehicle['Initial_position'], vehicle['Actions'])
                 # Vn_type
@@ -1164,13 +1138,12 @@ def convert_dsl(DSLs, meta_msg):
 def main():
     parser = argparse.ArgumentParser(description='Scenario Reconstruction in BeamNG')
     parser.add_argument('--dsl_path',
-                        default=r'SAFE\Experiment_results\DSL_results_2025-02-28_12-15-25\DSL_extraction_results.pkl')
+                        default=r'YOUR DSL PATH')
     parser.add_argument('--meta_msg',
-                        default=r'SAFE\Experiment_results\Meta_Message_results_2025-02-23_11-20-25\meta_data_results.pkl')
+                        default=r'YOUR META MSG PATH')
     args = parser.parse_args()
 
     with open(args.dsl_path,'rb') as file:
-        # [{DSL1},{DSL2},{DSL3},...{DSLN}]
         DSLs = pickle.load(file)
 
     with open(args.meta_msg,'rb') as file:

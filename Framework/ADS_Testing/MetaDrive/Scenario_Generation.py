@@ -23,9 +23,7 @@ def action_chain_s(Vehicle, Num_lanes):
         if Vehicle['Actions'] in ['Move forward', 'Move Forward', 'move forward', 'Stop']:
             # coming from left to right and go straight
             # spawn_lane_index_0 & spawn_lane_index_1 & destination can be:
-            # Vehicle_1.append(['>', '>>', '>>>'])
             Vehicle_1.append(['>>', '>>>', '1S0_0_'])
-            # Vehicle_1 = [['>','>>','>>>'], ['>>', '>>>', '1S0_0_']]
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
@@ -36,29 +34,19 @@ def action_chain_s(Vehicle, Num_lanes):
         elif Vehicle['Actions'] in ['Enter the Wrong Way', 'Enter The Wrong Way', 'enter the wrong way']:
             # coming from left to right and enter the wrong way
             # spawn_lane_index_0 & spawn_lane_index_1 & destination can be:
-            # Vehicle_1.append(['>', '>>', '->>'])
-            # Vehicle_1.append(['>', '>>', '->>>'])
-            # Vehicle_1.append(['>', '>>', '-1S0_0_'])
-            # Vehicle_1.append(['>>', '>>>', '->>>'])
             Vehicle_1.append(['>>', '>>>', '-1S0_0_'])
-            # Vehicle_1.append(['>>>', '1S0_0_', '-1S0_0_'])
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id 
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
         elif Vehicle['Actions'] in ['Changing Lane', 'changing lane', 'Changing lane']:
             if Num_lanes > 1:
-                # Vehicle_1.append(['>', '>>', '->>', 1])
-                # Vehicle_1.append(['>', '>>', '->>>', 1])
-                # Vehicle_1.append(['>', '>>', '-1S0_0_', 1])
                 Vehicle_1.append(['>>', '>>>', '->>>', 1])
                 Vehicle_1.append(['>>', '>>>', '-1S0_0_', 1])
-                # Vehicle_1.append(['>>>', '1S0_0_', '-1S0_0_', 1])
             else:
-                # Vehicle_1.append(['>', '>>', '>>>', 0])
                 Vehicle_1.append(['>>', '>>>', '1S0_0_', 0])
             return Vehicle_1
     else:
@@ -68,41 +56,30 @@ def action_chain_s(Vehicle, Num_lanes):
             # coming from right to left and go straight
             # spawn_lane_index_0 & spawn_lane_index_1 & destination can be:
             Vehicle_1.append(['-1S0_0_', '->>>', '->>'])
-            # Vehicle_1.append(['->>>', '->>', '->'])
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
         elif Vehicle['Actions'] in ['Enter the Wrong Way', 'Enter The Wrong Way', 'enter the wrong way']:
             # coming from right to left and enter the wrong way
             # spawn_lane_index_0 & spawn_lane_index_1 & destination can be:
-            # Vehicle_1.append(['-1S0_0_', '->>>', '>>>'])
             Vehicle_1.append(['-1S0_0_', '->>>', '>>'])
-            # Vehicle_1.append(['-1S0_0_', '->>>', '>'])
-            # Vehicle_1.append(['->>>', '->>', '>>'])
-            # Vehicle_1.append(['->>>', '->>', '>'])
-            # Vehicle_1.append(['->>', '->', '>'])
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
         elif Vehicle['Actions'] in ['Changing Lane', 'changing lane', 'Changing lane']:
             if Num_lanes > 1:
-                # Vehicle_1.append(['-1S0_0_', '->>>', '>>>', 1])
                 Vehicle_1.append(['-1S0_0_', '->>>', '>>', 1])
                 Vehicle_1.append(['-1S0_0_', '->>>', '>', 1])
-                # Vehicle_1.append(['->>>', '->>', '>>', 1])
-                # Vehicle_1.append(['->>>', '->>', '>', 1])
-                # Vehicle_1.append(['->>', '->', '>', 1])
             else:
                 Vehicle_1.append(['-1S0_0_', '->>>', '->>', 0])
-                # Vehicle_1.append(['->>>', '->>', '->', 0])
             return Vehicle_1
 
 def action_chain_c(Vehicle, Num_lanes):
@@ -114,12 +91,11 @@ def action_chain_c(Vehicle, Num_lanes):
         if Vehicle['Actions'] in ['Move forward', 'Move Forward', 'move forward', 'Stop']:
             # coming from left to right and go straight
             # spawn_lane_index_0 & spawn_lane_index_1 & destination can be:
-            # Vehicle_1.append(['>>', '>>>', '1C0_0_'])
             Vehicle_1.append(['>>>', '1C0_0_', '1C0_1_'])
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -129,11 +105,10 @@ def action_chain_c(Vehicle, Num_lanes):
             Vehicle_1.append(['>>', '>>>', '-1C0_0_'])
             Vehicle_1.append(['>>>', '1C0_0_', '-1C0_0_'])
             Vehicle_1.append(['>>>', '1C0_0_', '-1C0_1_'])
-            # Vehicle_1.append(['1C0_0_', '1C0_1_', '-1C0_1_'])
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -142,7 +117,6 @@ def action_chain_c(Vehicle, Num_lanes):
                 Vehicle_1.append(['>>', '>>>', '-1C0_0_', 1])
                 Vehicle_1.append(['>>>', '1C0_0_', '-1C0_0_', 1])
                 Vehicle_1.append(['>>>', '1C0_0_', '-1C0_1_', 1])
-                # Vehicle_1.append(['1C0_0_', '1C0_1_', '-1C0_1_', 1])
             else:
                 Vehicle_1.append(['>>', '>>>', '1C0_0_', 0])
                 Vehicle_1.append(['>>>', '1C0_0_', '1C0_1_', 0])
@@ -158,7 +132,7 @@ def action_chain_c(Vehicle, Num_lanes):
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -172,7 +146,7 @@ def action_chain_c(Vehicle, Num_lanes):
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -200,7 +174,7 @@ def action_chain_x(Vehicle, Num_lanes):
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -211,7 +185,7 @@ def action_chain_x(Vehicle, Num_lanes):
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -222,7 +196,7 @@ def action_chain_x(Vehicle, Num_lanes):
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -236,7 +210,7 @@ def action_chain_x(Vehicle, Num_lanes):
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -247,7 +221,7 @@ def action_chain_x(Vehicle, Num_lanes):
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -258,7 +232,7 @@ def action_chain_x(Vehicle, Num_lanes):
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -272,7 +246,7 @@ def action_chain_x(Vehicle, Num_lanes):
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -283,7 +257,7 @@ def action_chain_x(Vehicle, Num_lanes):
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -294,7 +268,7 @@ def action_chain_x(Vehicle, Num_lanes):
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -308,7 +282,7 @@ def action_chain_x(Vehicle, Num_lanes):
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -319,7 +293,7 @@ def action_chain_x(Vehicle, Num_lanes):
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -330,7 +304,7 @@ def action_chain_x(Vehicle, Num_lanes):
             # check the number of lanes
             chain = []
             for lane_id in range(Num_lanes):
-                spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                spawn_lane_index_2 = lane_id
                 for case_list in Vehicle_1:
                     chain.append(case_list + [spawn_lane_index_2])
             return chain
@@ -351,7 +325,7 @@ def action_chain_t(Vehicle, Num_lanes, Stem):
                 # check the number of lanes
                 chain = []
                 for lane_id in range(Num_lanes):
-                    spawn_lane_index_2 = lane_id  # 0, 1, 2, ...
+                    spawn_lane_index_2 = lane_id
                     for case_list in Vehicle_1:
                         chain.append(case_list + [spawn_lane_index_2])
                 return chain
@@ -543,14 +517,6 @@ def action_chain_r(Vehicle, Num_lanes):
             return Vehicle_1
 
 def action_pairs(Actors, Road_network, road_type):
-    # Input: {'Vehicle_1': {'Model': 'Sedan', 'Initial_position': 'W2E', 'Actions': 'Move forward', 'Speed': 'N/A'},
-    # 'Vehicle_2': {'Model': 'Sedan', 'Initial_position': 'E2W', 'Actions': 'Enter the Wrong Way', 'Speed': 'N/A'}}
-
-    # Output: {
-    #   'Vehicle_1':[(spawn_lane_index_1, spawn_lane_index_2, spawn_lane_index_3, destination), ... ]
-    #   'Vehicle_2':[(spawn_lane_index_1, spawn_lane_index_2, spawn_lane_index_3, destination), ... ]
-    # }
-
     # For positions: convert N to W, S to E
     Num_cars = len(Actors)
     Num_lanes = (int(Road_network['Number of lanes']) + 1) // 2 # Number of lanes on a single way
@@ -604,9 +570,7 @@ def action_filter(actions):
         v3_list = actions['Vehicle_3']
         pairs = []
         for v1_case in v1_list:
-            # ['-1S0_0_', '->>>', '->>', 0]
             for v2_case in v2_list:
-                # ['-1S0_0_', '->>>', '->>', 0]
                 for v3_case in v3_list:
                     if v1_case != v2_case and v1_case != v3_case and v2_case != v3_case:
                         pairs.append(v1_case + v2_case + v3_case)
@@ -616,9 +580,7 @@ def action_filter(actions):
         v2_list = actions['Vehicle_2']
         pairs = []
         for v1_case in v1_list:
-            # ['-1S0_0_', '->>>', '->>', 0]
             for v2_case in v2_list:
-                # ['-1S0_0_', '->>>', '->>', 0]
                 if v1_case != v2_case:
                     pairs.append(v1_case + v2_case)
         return pairs
@@ -1114,7 +1076,6 @@ def main():
         DSLs = pickle.load(file)
 
     with open(args.meta_msg,'rb') as file:
-        # [['Straight', 2, 'opposite direction', '128697'], ..., ['T-intersection', 2, 'crossing traffic', '119839']]
         meta_msg = pickle.load(file)
 
     # Create result folder
@@ -1134,7 +1095,7 @@ def main():
     start_time = time.time()
 
     for case in meta_msg:
-        scenario_id = case[-1] # '128697'
+        scenario_id = case[-1]
         dsl = get_dsl(DSLs,scenario_id)
         Actors = dsl['Actors'][0]
         Road_network = dsl['Road network']

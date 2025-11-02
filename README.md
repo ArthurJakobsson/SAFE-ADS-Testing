@@ -2,7 +2,7 @@
 ## Intro
 Ensuring the safety of Autonomous Driving Systems (ADS) requires realistic and reproducible test scenarios, yet extracting such scenarios from multimodal crash reports remains a major challenge. Large Language Models (LLMs) often hallucinate and lose map structure, resulting in unrealistic road layouts and vehicle behaviors. To address this, we introduce SAFE, a novel Scenario-based ADS testing Framework via multimodal Extraction, which leverages Retrieval Augmented Generation (RAG), knowledge-grounded prompting, Chain-of-Thought (CoT) reasoning, and self-validation to improve scenario reconstruction from multimodal crash data.
 
-This repository contains the source code for our ICSE 2026 paper “SAFE: Harnessing LLM for Scenario-Driven ADS Testing from Multimodal Crash Data.”
+This repository contains the source code for our paper “SAFE: Harnessing LLM for Scenario-Driven ADS Testing from Multimodal Crash Data.”
 
 ## SAFE Structure
 ![Solution Pipeline](Information_Extraction.png)
@@ -15,6 +15,8 @@ SAFE requires access to OpenAI’s API for LLM-based extraction. Obtain an API k
 ```bash
 export OPENAI_API_KEY="your_api_key_here"
 ```
+
+More info about how to set up the OpenAI API, please refer to the official documentation: [OpenAI API](https://platform.openai.com/docs/api-reference/introduction)
 
 ### Step 2. Install MetaDrive Simulator
 MetaDrive is one of the supported simulation environments for SAFE. Follow the installation guide at: [MetaDrive GitHub](https://github.com/metadriverse/metadrive)
