@@ -260,41 +260,6 @@ def dsl_validation(dsl, record, model, results_path):
     else:
         return 1
 
-def extract_conflict(record, model, results_path):
-    """(#3) Extract an explicit collision descriptor so the BEV can place the crash
-    deterministically instead of inferring it. Returns a dict (or {} if unparseable)."""
-    Sketch = encode_image(f'./Crash_dataset/{record}/Sketch.jpg')
-    with open(f'./Crash_dataset/{record}/Summary.txt', 'r', encoding='utf-8') as file:
-        Summary = file.read()
-    client = OpenAI()
-    system = (
-        "You are a crash reconstruction expert. From the crash summary and the bird's-eye "
-        "sketch, identify the collision. Respond with ONLY a JSON object (no prose) of the form:\n"
-        '{"at_fault_vehicle": "Vehicle_1" or "Vehicle_2", '
-        '"struck_vehicle": "Vehicle_1" or "Vehicle_2", '
-        '"impact_type": one of ["head-on","rear-end","angle","sideswipe","T-bone","single-vehicle"], '
-        '"point_of_impact": "<short phrase>", "description": "<one sentence>"}\n'
-        "at_fault_vehicle is the one that initiated the conflict (crossed the centreline, turned "
-        "across the other's path, merged improperly, ran a control device, etc.). Vehicle_1 is the "
-        "case vehicle (V1).")
-    response = client.chat.completions.create(
-        model=model,
-        messages=[
-            {"role": "system", "content": [{"type": "text", "text": system}]},
-            {"role": "user", "content": [
-                {"type": "text", "text": "Sketch:\n"},
-                {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{Sketch}"}},
-                {"type": "text", "text": f"\nSummary:\n{Summary}"}]}],
-        response_format={"type": "text"}, temperature=1, max_completion_tokens=300,
-        top_p=1, frequency_penalty=0, presence_penalty=0)
-    out = response.choices[0].message.content
-    with open(os.path.join(results_path, f"{record}_conflict.txt"), 'w', encoding='utf-8') as file:
-        file.write(out)
-    try:
-        return json.loads(_extract_json_block(out))
-    except Exception:
-        return {}
-
 def main():
     project_path = os.getcwd()
     parser = argparse.ArgumentParser()
@@ -336,7 +301,6 @@ def main():
             print(f"Case {record} finished!")
             print('-----------------')
             dsl['Scenario'] = record
-            dsl['Conflict'] = extract_conflict(record, args.gpt, folder_path)
             DSL.append(dsl)
             time.sleep(1)
         elif vali_results == 0:
@@ -344,7 +308,6 @@ def main():
             print('Extract DSL again!')
             raw_msg, dsl = get_dsl(record, args.prompts, road_type, direction, args.gpt, folder_path)
             dsl['Scenario'] = record
-            dsl['Conflict'] = extract_conflict(record, args.gpt, folder_path)
             DSL.append(dsl)
             print(f"Case {record} finished!")
             print('-----------------')

@@ -1,1 +1,0 @@
-{"at_fault_vehicle": "Vehicle_2", "struck_vehicle": "Vehicle_1", "impact_type": "T-bone", "point_of_impact": "front of V2 struck right side of V1", "description": "Vehicle 2, traveling west, entered the intersection and struck the right side of Vehicle 1, which was traveling north, in a T-bone collision at the intersection controlled by flashing red and yellow lights."}

@@ -1,1 +1,0 @@
-{"at_fault_vehicle": "Vehicle_1", "struck_vehicle": "Vehicle_2", "impact_type": "T-bone", "point_of_impact": "front of V2 striking left side of V1", "description": "Vehicle 1, stopped in a commercial driveway, initiated a left turn into the path of Vehicle 2, which was traveling north on the main road, resulting in a T-bone collision as V1 failed to yield the right-of-way."}

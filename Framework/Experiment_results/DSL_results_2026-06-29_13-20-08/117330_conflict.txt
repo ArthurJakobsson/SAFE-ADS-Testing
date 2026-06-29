@@ -1,1 +1,0 @@
-{"at_fault_vehicle": "Vehicle_2", "struck_vehicle": "Vehicle_1", "impact_type": "head-on", "point_of_impact": "front-to-front offset", "description": "Vehicle 2 lost control on icy road, crossed the centerline, and struck the front of Vehicle 1 in an offset-frontal collision, causing both vehicles to rotate and V1 to roll into the ditch."}

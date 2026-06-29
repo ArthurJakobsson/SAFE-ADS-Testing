@@ -649,25 +649,51 @@ def _stage_collision(scene, seq):
         x, y, yaw, dx, dy, ego = seq[f][vic]
         seq[f][vic] = (x + dxs, y + dys, yaw, dx, dy, ego)
 
-    # striking vehicle: smooth intercept from its approach point to the impact point
+    # striking vehicle path. Two regimes so we don't over-constrain the motion:
     ramp_start = scene.notes.get("ramp_start")
     if ramp_start is not None and af == scene.notes.get("ramp_idx"):
-        Sx, Sy = ramp_start                                   # (#2) approach along the on-ramp
+        # on-ramp merge: the whole approach IS the maneuver -> curve from ramp start to impact.
+        Sx, Sy = ramp_start
+        dist = math.hypot(Ix - Sx, Iy - Sy)
+        Cx, Cy = Sx + A.ux * 0.6 * dist, Sy + A.uy * 0.6 * dist
+        last_yaw = seq[0][af][2]
+        for f in range(frames):
+            u = min(1.0, f / mid)
+            om = 1.0 - u
+            px = om * om * Sx + 2 * om * u * Cx + u * u * Ix
+            py = om * om * Sy + 2 * om * u * Cy + u * u * Iy
+            tx = 2 * om * (Cx - Sx) + 2 * u * (Ix - Cx)
+            ty = 2 * om * (Cy - Sy) + 2 * u * (Iy - Cy)
+            yaw = math.atan2(ty, tx) if (abs(tx) + abs(ty)) > 1e-6 else last_yaw
+            last_yaw = yaw
+            seq[f][af] = (px, py, yaw, A.dx, A.dy, A.is_ego)
     else:
-        Sx, Sy = seq[0][af][0], seq[0][af][1]
-    dist = math.hypot(Ix - Sx, Iy - Sy)
-    Cx, Cy = Sx + A.ux * 0.6 * dist, Sy + A.uy * 0.6 * dist    # control pt: leave along own heading
-    last_yaw = seq[0][af][2]
-    for f in range(frames):
-        u = min(1.0, f / mid)
-        om = 1.0 - u
-        px = om * om * Sx + 2 * om * u * Cx + u * u * Ix
-        py = om * om * Sy + 2 * om * u * Cy + u * u * Iy
-        tx = 2 * om * (Cx - Sx) + 2 * u * (Ix - Cx)
-        ty = 2 * om * (Cy - Sy) + 2 * u * (Iy - Cy)
-        yaw = math.atan2(ty, tx) if (abs(tx) + abs(ty)) > 1e-6 else last_yaw
-        last_yaw = yaw
-        seq[f][af] = (px, py, yaw, A.dx, A.dy, A.is_ego)
+        # through vehicle: travel STRAIGHT in its own lane and heading for most of the approach,
+        # then a short terminal maneuver into the victim. Preserves the car's stated direction
+        # instead of bending the whole trajectory.
+        S0x, S0y = seq[0][af][0], seq[0][af][1]
+        stepx, stepy = seq[1][af][0] - S0x, seq[1][af][1] - S0y     # straight per-frame step
+        heading = math.atan2(stepy, stepx) if (abs(stepx) + abs(stepy)) > 1e-9 else seq[0][af][2]
+        f_turn = max(1, int(round(0.65 * mid)))                     # maneuver only in the last ~35%
+        Tx, Ty = S0x + stepx * f_turn, S0y + stepy * f_turn         # where the maneuver begins
+        dist = math.hypot(Ix - Tx, Iy - Ty)
+        Cx = Tx + math.cos(heading) * 0.5 * dist
+        Cy = Ty + math.sin(heading) * 0.5 * dist
+        denom = max(1, mid - f_turn)
+        last_yaw = heading
+        for f in range(frames):
+            if f <= f_turn:
+                seq[f][af] = (S0x + stepx * f, S0y + stepy * f, heading, A.dx, A.dy, A.is_ego)
+            else:
+                u = min(1.0, (f - f_turn) / denom)
+                om = 1.0 - u
+                px = om * om * Tx + 2 * om * u * Cx + u * u * Ix
+                py = om * om * Ty + 2 * om * u * Cy + u * u * Iy
+                tx = 2 * om * (Cx - Tx) + 2 * u * (Ix - Cx)
+                ty = 2 * om * (Cy - Ty) + 2 * u * (Iy - Cy)
+                yaw = math.atan2(ty, tx) if (abs(tx) + abs(ty)) > 1e-6 else last_yaw
+                last_yaw = yaw
+                seq[f][af] = (px, py, yaw, A.dx, A.dy, A.is_ego)
 
 
 # ------------------------------------------------------------------------------------------

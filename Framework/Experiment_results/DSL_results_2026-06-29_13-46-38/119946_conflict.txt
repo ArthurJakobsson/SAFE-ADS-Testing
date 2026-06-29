@@ -1,0 +1,1 @@
+{"at_fault_vehicle": "Vehicle_1", "struck_vehicle": "Vehicle_2", "impact_type": "angle", "point_of_impact": "left side of V1 struck by trailer component of V2", "description": "Vehicle 1 entered the ramp at excessive speed, failed to merge safely, crossed into V2's lane, and was struck on the left side by V2's trailer as it ran under the trailer."}

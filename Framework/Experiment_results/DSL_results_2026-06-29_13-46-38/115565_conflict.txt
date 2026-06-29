@@ -1,0 +1,1 @@
+{"at_fault_vehicle": "Vehicle_1", "struck_vehicle": "Vehicle_2", "impact_type": "T-bone", "point_of_impact": "front of V2 striking left side of V1", "description": "Vehicle 1, while making a left turn at a stop-controlled intersection, was struck by Vehicle 2 traveling north, resulting in a T-bone collision with subsequent sideslap contact."}

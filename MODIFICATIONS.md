@@ -5,42 +5,40 @@ This file records every change made to the **original SAFE code** (the files upl
 (the free-VLM serving stack, BEV synthesis, CIREN tools, and the debug dashboard — see
 [`SETUP.md`](SETUP.md)). The bolt-on tooling is *not* part of original SAFE and is not listed here.
 
-## Original SAFE files (for reference)
+## Original SAFE files
 `Framework/Meta_Message_Extraction.py`, `Framework/Prompts_Generation.py`,
 `Framework/Scenario_Representation_Extraction.py`, and `Framework/ADS_Testing/{BeamNG,MetaDrive}/`.
 
-## Changes
+## Current status: **no changes to original SAFE structure.**
 
-### 1. `Framework/Scenario_Representation_Extraction.py` — add a `Conflict` descriptor (Stage 3)
-**What:** Added a new function `extract_conflict(record, model, results_path)` and called it once
-per case in `main()` (both validation branches), attaching the result to the per-case DSL dict as
-a new top-level key `Conflict`:
+The deterministic-crash work (the per-case `Conflict` descriptor) is implemented entirely in
+**bolt-on tooling**, so the original SAFE pipeline is byte-for-byte unchanged. Verify with:
 
-```json
-"Conflict": {
-  "at_fault_vehicle": "Vehicle_1|Vehicle_2",
-  "struck_vehicle":   "Vehicle_1|Vehicle_2",
-  "impact_type":      "head-on|rear-end|angle|sideswipe|T-bone|single-vehicle",
-  "point_of_impact":  "<short phrase>",
-  "description":      "<one sentence>"
-}
+```bash
+git diff <last-SAFE-commit> -- Framework/Scenario_Representation_Extraction.py \
+                                Framework/Meta_Message_Extraction.py \
+                                Framework/Prompts_Generation.py   # → empty
 ```
 
-It makes one extra multimodal call (summary + crash sketch) and writes a raw `<id>_conflict.txt`
-alongside the existing Stage-3 artifacts. JSON is parsed with the existing tolerant
-`_extract_json_block`.
+### How `Conflict` is produced (non-destructive, bolt-on)
+`Framework/ADS_Testing/BEV_Synthesis/conflict_augment.py` reads an existing
+`DSL_extraction_results.pkl`, makes one extra multimodal call per case to extract a `Conflict`
+block `{at_fault_vehicle, struck_vehicle, impact_type, point_of_impact, description}`, and writes a
+**new** pickle with every original DSL field copied verbatim. It never re-runs Stage 3, so vehicle
+directions/actions are never re-rolled.
 
-**Why:** The BEV synthesizer (bolt-on, `ADS_Testing/BEV_Synthesis/bev_from_dsl.py`) previously had
-to *infer* the collision from the lane-keeping rollout, so angle / T-bone / merge crashes never
-converged and the vehicles passed without colliding. The explicit `Conflict.at_fault_vehicle` lets
-the BEV place the collision **deterministically** (steer the at-fault vehicle to intercept the
-victim) instead of guessing.
+```bash
+# from Framework/
+python ADS_Testing/BEV_Synthesis/conflict_augment.py \
+    --dsl Experiment_results/DSL_results_<ts>/DSL_extraction_results.pkl --gpt "$SAFE_MODEL"
+```
 
-**Compatibility:** Purely **additive** — no existing DSL field, prompt, or Stage-1/2/4 behavior is
-changed. `Conflict` is a new optional key; consumers that ignore it are unaffected. If the model
-returns unparseable JSON, the field is `{}`.
+The BEV synthesizer (`bev_from_dsl.py`) consumes `Conflict.at_fault_vehicle` to place the
+collision deterministically (with a heuristic fallback when the field is absent).
 
-> Note: the original Stage-3 file had already been modified once before this work, by the
-> free-VLM addition, to add the tolerant `_extract_json_block` JSON extractor (see `SETUP.md`).
-> No other original SAFE file (`Meta_Message_Extraction.py`, `Prompts_Generation.py`, the BeamNG /
-> MetaDrive generators) was touched.
+### History (why this file exists)
+An earlier iteration added an `extract_conflict()` pass *inside*
+`Scenario_Representation_Extraction.py` and re-ran Stage 3 to populate it. That re-ran the
+stochastic DSL extraction (`temperature=1`) and **drifted a vehicle direction** (case 119489 V1
+flipped `E2W`→`W2E`, contradicting the "facing west" narrative). It was reverted in favor of the
+standalone non-destructive augmenter above, restoring the original SAFE file to pristine.
