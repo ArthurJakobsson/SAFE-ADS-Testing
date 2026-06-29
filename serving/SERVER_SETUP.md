@@ -80,21 +80,21 @@ before you `vllm serve`** — ids below are the expected names, not copy-paste g
 ## 3. Setup, step by step (server)
 
 ### 3.1 Build the serving env
-Base conda on these boxes is usually Python 3.13, which vLLM does **not** support — make a fresh
-**py3.11** env (same lesson as the workstation):
+Model weights and the vLLM env live together under **`/mnt/disk2/SAFE_files`** (the shared models
+disk), not in `$HOME`. `install_vllm_env.sh` builds a **virtualenv** there — a venv, not a conda
+env, because `conda.anaconda.org` is behind an SSL-inspecting proxy on this box (`conda create`
+fails) while PyPI is reachable.
 
 ```bash
 # from the repo root on the server
-ENV_NAME=safe-vllm bash serving/install_vllm_env.sh
+bash serving/install_vllm_env.sh        # -> /mnt/disk2/SAFE_files/safe-vllm   (override via SAFE_FILES=)
 ```
 
-> ⚠️ **Qwen3-VL needs a newer vLLM/transformers than the workstation's pinned `vllm>=0.7.2`.**
-> For any Qwen3-VL or Llama-4-VL model, install the **latest** vLLM release instead:
+> ⚠️ **Qwen3-VL needs a recent vLLM/transformers.** `install_vllm_env.sh` already installs the
+> latest. To upgrade an existing env in place:
 > ```bash
-> CONDA_BASE="$(conda info --base)"
-> "$CONDA_BASE/envs/safe-vllm/bin/pip" install -U "vllm" "transformers" "huggingface_hub[hf_transfer]"
+> /mnt/disk2/SAFE_files/safe-vllm/bin/pip install -U vllm transformers huggingface_hub hf_transfer
 > ```
-> Qwen2.5-VL / InternVL3 are fine on the pinned version.
 
 ### 3.2 Download the weights
 Qwen and InternVL VLM weights are **open / ungated → no token needed**. Use `hf_transfer` for a
@@ -105,7 +105,8 @@ export HF_HUB_ENABLE_HF_TRANSFER=1
 huggingface-cli download Qwen/Qwen3-VL-32B-Instruct   # or your chosen repo id
 ```
 - If you ever pick a **gated** model, run `huggingface-cli login` first.
-- Set `HF_HOME` to a big disk if `~/.cache` is small — a 235B FP8 checkpoint is ~235 GB.
+- Weights live under `/mnt/disk2/SAFE_files/hf_cache` (the serve scripts export `HF_HOME` there).
+  Point `SAFE_FILES`/`HF_HOME` at a bigger disk for large checkpoints — a 235B FP8 is ~235 GB.
 
 ### 3.3 Serve it
 `serve_server.sh` is already parameterized by `MODEL`/`TP`/`PORT`/`MAX_LEN`, so for the standard
@@ -167,8 +168,8 @@ python Scenario_Representation_Extraction.py --gpt "$SAFE_MODEL" \
 These cost time the first time — they're already baked into the scripts, listed here so you know
 *why* and can debug fast:
 
-- **Python 3.11 env, not base.** Base conda (3.13) can't install vLLM. `install_vllm_env.sh`
-  creates a clean `safe-vllm` py3.11 env.
+- **Dedicated venv, not base.** `install_vllm_env.sh` creates a clean `safe-vllm` virtualenv under
+  `/mnt/disk2/SAFE_files` (conda is blocked by the proxy on this box; PyPI works).
 - **`VLLM_USE_FLASHINFER_SAMPLER=0`.** Otherwise vLLM JIT-compiles a flashinfer sampler at
   runtime and needs `ninja`/`nvcc` on PATH; disabling it uses the native PyTorch sampler. The
   serve scripts also prepend the env's `bin/` to PATH so any JIT helpers resolve.

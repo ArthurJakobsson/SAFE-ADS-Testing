@@ -1,25 +1,33 @@
 #!/usr/bin/env bash
-# Creates a dedicated conda env for serving Qwen2.5-VL via vLLM (OpenAI-compatible API).
-# Base conda is Python 3.13 which vLLM does not support, so we use a fresh py3.11 env.
+# Build the dedicated vLLM serving env under $SAFE_FILES (shared models disk), next to the
+# model weights. We use a virtualenv rather than a conda env: on this box conda.anaconda.org is
+# behind an SSL-inspecting proxy so `conda create` fails, while PyPI is reachable.
 set -euo pipefail
 
-ENV_NAME="${ENV_NAME:-safe-vllm}"
-CONDA_BASE="$(conda info --base)"
-PY_BIN="$CONDA_BASE/envs/$ENV_NAME/bin/python"
-PIP_BIN="$CONDA_BASE/envs/$ENV_NAME/bin/pip"
+SAFE_FILES="${SAFE_FILES:-/mnt/disk2/SAFE_files}"
+VENV="${VENV:-$SAFE_FILES/safe-vllm}"
+PY="${PY:-python3}"                 # base interpreter (vLLM needs Python <3.13)
+PIP_BIN="$VENV/bin/pip"
+PY_BIN="$VENV/bin/python"
 
-echo "[install] creating conda env '$ENV_NAME' (python 3.11)"
-conda create -y -n "$ENV_NAME" python=3.11
+mkdir -p "$SAFE_FILES"
+echo "[install] creating venv at $VENV (python: $("$PY" --version 2>&1))"
+if "$PY" -m venv "$VENV" 2>/dev/null; then
+  :
+else
+  echo "[install] base python lacks ensurepip; falling back to virtualenv"
+  "$PY" -m pip install --user -q virtualenv
+  "$PY" -m virtualenv "$VENV"
+fi
 
-echo "[install] upgrading pip"
-"$PIP_BIN" install --upgrade pip wheel
+echo "[install] upgrading pip/wheel/setuptools"
+"$PIP_BIN" install --upgrade pip wheel setuptools
 
-echo "[install] installing vllm + openai client (this pulls torch+cuda, may take a while)"
-# vllm pins a compatible torch/transformers; transformers must be >=4.49 for Qwen2.5-VL,
-# which recent vllm releases satisfy automatically.
-"$PIP_BIN" install "vllm>=0.7.2" "openai>=1.40" "huggingface_hub[hf_transfer]"
+echo "[install] installing latest vllm + transformers + clients (pulls torch+cuda, slow)"
+# Qwen3-VL needs a recent vLLM/transformers, so install the latest releases.
+"$PIP_BIN" install -U vllm transformers "huggingface_hub" hf_transfer "openai>=1.40"
 
-echo "[install] vllm version:"
-"$PY_BIN" -c "import vllm, torch; print('vllm', vllm.__version__, '| torch', torch.__version__, '| cuda', torch.cuda.is_available())"
+echo "[install] versions:"
+"$PY_BIN" -c "import vllm, torch, transformers; print('vllm', vllm.__version__, '| torch', torch.__version__, '| transformers', transformers.__version__, '| cuda', torch.cuda.is_available())"
 
-echo "[install] DONE. Serve with: bash serving/serve_local.sh"
+echo "[install] DONE. Serve with: bash serving/serve_server.sh"

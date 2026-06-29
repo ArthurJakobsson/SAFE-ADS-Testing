@@ -2,10 +2,13 @@
 # Serve the full-quality Qwen2.5-VL-72B on the 7xL40S server (336GB total VRAM).
 # 72B in bf16 (~145GB) shards cleanly across 4 GPUs with tensor parallelism.
 set -euo pipefail
-ENV_NAME="${ENV_NAME:-safe-vllm}"
-CONDA_BASE="$(conda info --base)"
-VLLM="$CONDA_BASE/envs/$ENV_NAME/bin/vllm"
-export PATH="$CONDA_BASE/envs/$ENV_NAME/bin:$PATH"
+# Model weights + the vLLM env live under $SAFE_FILES (shared models disk).
+# Override SAFE_FILES / VENV / HF_HOME to relocate.
+SAFE_FILES="${SAFE_FILES:-/mnt/disk2/SAFE_files}"
+VENV="${VENV:-$SAFE_FILES/safe-vllm}"
+VLLM="$VENV/bin/vllm"
+export PATH="$VENV/bin:$PATH"
+export HF_HOME="${HF_HOME:-$SAFE_FILES/hf_cache}"
 export VLLM_USE_FLASHINFER_SAMPLER=0
 export VLLM_ATTENTION_BACKEND=FLASH_ATTN
 

@@ -7,7 +7,7 @@ model endpoint and added new modules.
 
 ```
 serving/                         # vLLM (free Qwen2.5-VL) serving — replaces the OpenAI API
-  install_vllm_env.sh            # one-time: build `safe-vllm` conda env (py3.11) + install vLLM
+  install_vllm_env.sh            # one-time: build `safe-vllm` vLLM venv under /mnt/disk2/SAFE_files
   serve_local.sh                 # serve 3B-AWQ on this 12GB GPU (smoke test)
   serve_server.sh                # serve 72B on the 7xL40S server (full quality)
   env.sh                         # `source` it: points the repo's OpenAI() client at vLLM
@@ -37,7 +37,7 @@ Stage 3 (`_extract_json_block`), since open VLMs are less consistent than GPT-4o
 
 ### 1. One-time install (already done on this machine)
 ```bash
-bash serving/install_vllm_env.sh     # creates conda env `safe-vllm` with vLLM + torch(cuda)
+bash serving/install_vllm_env.sh     # builds the `safe-vllm` venv (under /mnt/disk2/SAFE_files) w/ vLLM+torch
 ```
 
 ### 2. Serve the model
