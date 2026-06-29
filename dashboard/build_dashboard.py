@@ -1,14 +1,13 @@
-"""Build a single self-contained HTML dashboard to debug both project tracks.
+"""Build a single self-contained HTML dashboard to debug the SAFE pipeline.
 
 Scans the repo for whatever exists and embeds everything (images base64-inlined) into one
 standalone `dashboard.html` that opens over file:// with no server or network.
 
 Sections:
   - Status bar: served model / env / counts.
-  - Track A (SAFE pipeline): per crash case -> input Sketch + Summary, extracted meta, DSL,
+  - SAFE pipeline: per crash case -> input Sketch + Summary, extracted meta, DSL,
     and the synthesized nuPlan-style BEV.
   - Demo BEVs: the --demo synthetic BEVs (one per road type).
-  - Track B (CIREN scraper): scraped cases from the scraper manifest.
 
 Usage:
     python dashboard/build_dashboard.py            # auto-discovers latest results
@@ -25,14 +24,6 @@ import sys
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRAMEWORK = os.path.join(REPO, "Framework")
 BEV_OUT = os.path.join(FRAMEWORK, "ADS_Testing", "BEV_Synthesis", "output")
-# Scraped-dataset manifests (Track B). The modern CIREN 2017+ dataset is the main one;
-# _scratch_out is the legacy byte-exact validation set. Embedding every image would make a
-# huge HTML, so we cap how many scraped cases get inlined (the rest are counted, not shown).
-SCRAPE_SOURCES = [
-    os.path.join(FRAMEWORK, "Crash_dataset_CIREN2017"),
-    os.path.join(FRAMEWORK, "Crash_dataset_tools", "_scratch_out"),
-]
-SCRAPE_EMBED_CAP = 48
 
 
 def _b64(path, mime):
@@ -65,7 +56,7 @@ def _load_pickle(path):
 
 
 def collect():
-    data = {"status": {}, "cases": [], "demos": [], "scraped": [], "legend": []}
+    data = {"status": {}, "cases": [], "demos": [], "legend": []}
 
     # --- env / status ---
     data["status"] = {
@@ -117,7 +108,7 @@ def collect():
             media = os.path.join(BEV_OUT, info.get("png", stem + ".png"))
         bev_by_case[cid] = {"png": _img(media), "info": info, "animated": bool(gif)}
 
-    # --- Track A: crash cases (input dataset) ---
+    # --- crash cases (input dataset) ---
     ds_dir = os.path.join(FRAMEWORK, "Crash_dataset")
     case_ids = sorted([d for d in os.listdir(ds_dir) if os.path.isdir(os.path.join(ds_dir, d))]) \
         if os.path.isdir(ds_dir) else []
@@ -141,47 +132,12 @@ def collect():
         if cid.startswith("demo_"):
             data["demos"].append({"case_id": cid, "bev_png": bev["png"], "bev_info": bev["info"]})
 
-    # --- Track B: scraped CIREN cases (modern 2017+ dataset + legacy validation) ---
-    counts = {"ok": 0, "fail": 0, "skip": 0, "total": 0}
-    embedded = 0
-    for src in SCRAPE_SOURCES:
-        scr_manifest = os.path.join(src, "manifest.json")
-        if not os.path.exists(scr_manifest):
-            continue
-        try:
-            with open(scr_manifest) as f:
-                entries = json.load(f)
-            if isinstance(entries, dict):
-                entries = entries.get("cases", entries.get("entries", []))
-        except Exception as ex:
-            data["status"]["scrape_error"] = str(ex)
-            continue
-        for e in entries:
-            cid = str(e.get("case_id", "?"))
-            st = e.get("status", "?")
-            counts["total"] += 1
-            counts[st] = counts.get(st, 0) + 1
-            # only inline successful cases, up to the cap (keeps HTML small)
-            if st != "ok" or embedded >= SCRAPE_EMBED_CAP:
-                continue
-            sp = e.get("sketch_path") or os.path.join(src, cid, "Sketch.jpg")
-            up = e.get("summary_path") or os.path.join(src, cid, "Summary.txt")
-            if not (os.path.exists(sp) and os.path.exists(up)):
-                continue
-            summary = open(up, encoding="utf-8", errors="ignore").read()
-            data["scraped"].append({
-                "case_id": cid, "status": st, "note": e.get("note", ""),
-                "sketch": _img(sp), "summary": summary,
-                "summary_chars": e.get("summary_chars"), "sketch_bytes": e.get("sketch_bytes"),
-            })
-            embedded += 1
-    data["scrape_counts"] = counts
     return data
 
 
 HEAD = """<!doctype html><html lang=en><head><meta charset=utf-8>
 <meta name=viewport content="width=device-width,initial-scale=1">
-<title>SAFE — Track A/B dashboard</title>
+<title>SAFE — crash → DSL → BEV dashboard</title>
 <style>
 :root{--bg:#16181d;--panel:#1e2128;--panel2:#252933;--line:#333a45;--fg:#e6e9ef;--mut:#9aa4b2;--acc:#5cc8ff;--ok:#4ade80;--warn:#fbbf24;--err:#f87171;}
 *{box-sizing:border-box}
@@ -235,6 +191,11 @@ function caseCard(c){
    m.append(Object.assign($('span','chip'),{textContent:'road: '+c.meta.road_type}));
    m.append(Object.assign($('span','chip'),{textContent:'cars: '+c.meta.num_cars}));
    m.append(Object.assign($('span','chip'),{textContent:'dir: '+c.meta.direction})); card.append(m);}
+ if(c.dsl&&c.dsl.Conflict){const cf=c.dsl.Conflict;const m2=$('div','meta');
+   const it=cf.impact_type||cf.impact||'';const af=cf.at_fault_vehicle||cf.at_fault||'';
+   if(it)m2.append(Object.assign($('span','chip'),{textContent:'impact: '+it}));
+   if(af)m2.append(Object.assign($('span','chip'),{textContent:'at-fault: '+af}));
+   card.append(m2);}
  const r2=$('div','row'); r2.append(textCol('crash summary',c.summary,'summary')); card.append(r2);
  if(c.dsl){const r3=$('div','row'); const col=$('div','col'); col.append(Object.assign($('p','lbl'),{textContent:'extracted DSL'}));
    const pre=$('pre','dsl'); pre.textContent=JSON.stringify(c.dsl,null,2); col.append(pre); r3.append(col); card.append(r3);}
@@ -246,15 +207,6 @@ function demoCard(d){const card=$('div','card');const h=$('h3');h.append(Object.
  if(d.bev_info){const m=$('div','meta');(d.bev_info.agents||[]).forEach(a=>m.append(Object.assign($('span','chip'),{textContent:a.label+(a.is_ego?' (ego)':'')+' @'+a.yaw_deg+'°'})));
    m.append(Object.assign($('span','chip'),{textContent:'lanes: '+d.bev_info.n_lanes}));card.append(m);}
  return card;}
-function scrapeCard(s){const card=$('div','card');const h=$('h3');h.append(Object.assign($('span'),{textContent:'Case '+s.case_id}));
- const cls=s.status&&/ok|success|done/i.test(s.status)?'ok':(/skip/i.test(s.status)?'warn':'err');
- const t=$('span','tag '+cls);t.textContent=s.status;h.append(t);card.append(h);
- const r1=$('div','row');r1.append(imgCol('scraped sketch',s.sketch));card.append(r1);
- const r2=$('div','row');r2.append(textCol('scraped summary',s.summary,'summary'));card.append(r2);
- const m=$('div','meta');if(s.summary_chars!=null)m.append(Object.assign($('span','chip'),{textContent:s.summary_chars+' chars'}));
- if(s.sketch_bytes!=null)m.append(Object.assign($('span','chip'),{textContent:s.sketch_bytes+' img bytes'}));
- if(s.note)m.append(Object.assign($('span','chip'),{textContent:s.note}));card.append(m);return card;}
-
 function legend(items){if(!items||!items.length)return null;const l=$('div','legend');
  items.forEach(([n,c])=>{const s=$('span');const i=$('i');i.style.background=c;s.append(i);s.append(document.createTextNode(n));l.append(s)});return l;}
 
@@ -266,9 +218,7 @@ function legend(items){if(!items||!items.length)return null;const l=$('div','leg
    '<span><b>'+DATA.cases.length+'</b> crash cases</span>'+
    '<span><b>'+DATA.cases.filter(c=>c.dsl).length+'</b> with DSL</span>'+
    '<span><b>'+DATA.cases.filter(c=>c.bev_png).length+'</b> with BEV</span>'+
-   '<span><b>'+DATA.demos.length+'</b> demo BEVs</span>'+
-   '<span><b>'+((DATA.scrape_counts&&DATA.scrape_counts.ok)||DATA.scraped.length)+'</b> CIREN scraped ok'+
-     (DATA.scrape_counts?(' / '+DATA.scrape_counts.total+' attempted'):'')+' (Track B)</span>';
+   '<span><b>'+DATA.demos.length+'</b> demo BEVs</span>';
 
  const A=document.getElementById('secA');
  const lg=legend(DATA.legend); if(lg)A.append(lg);
@@ -282,13 +232,7 @@ function legend(items){if(!items||!items.length)return null;const l=$('div','leg
  const gd=$('div','grid'); DATA.demos.forEach(d=>gd.append(demoCard(d))); D.append(gd);
  if(!DATA.demos.length)D.append(Object.assign($('div','empty'),{textContent:'No demo BEVs. Run: bev_from_dsl.py --demo'}));
 
- const B=document.getElementById('secB');
- const bc=DATA.scrape_counts||{};
- B.append(Object.assign($('p','note'),{textContent:'CIREN scraped cases (Track B): real NHTSA crash narrative + scene-diagram drawing, drop-in for the SAFE pipeline. '+(bc.total?('Showing first '+DATA.scraped.length+' of '+(bc.ok||0)+' successful ('+bc.total+' attempted; '+(bc.fail||0)+' failed, '+(bc.skip||0)+' skipped).'):'')}));
- const gb=$('div','grid'); DATA.scraped.forEach(s=>gb.append(scrapeCard(s))); B.append(gb);
- if(!DATA.scraped.length)B.append(Object.assign($('div','empty'),{textContent:'No scraped cases yet (Track B running in the other window).'}));
-
- const secs={A:'secA',D:'secD',B:'secB'};
+ const secs={A:'secA',D:'secD'};
  document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
    for(const k in secs)document.getElementById(secs[k]).classList.remove('on');
@@ -304,13 +248,12 @@ def main():
     args = ap.parse_args()
 
     data = collect()
-    nav = ('<nav><button class=on data-s=A>Track A · SAFE pipeline</button>'
-           '<button data-s=D>Demo BEVs</button>'
-           '<button data-s=B>Track B · CIREN scraper</button></nav>')
-    header = ('<header><h1>SAFE <small>crash → DSL → nuPlan-style BEV · + CIREN dataset</small></h1>'
+    nav = ('<nav><button class=on data-s=A>SAFE pipeline</button>'
+           '<button data-s=D>Demo BEVs</button></nav>')
+    header = ('<header><h1>SAFE <small>crash → DSL → nuPlan-style BEV</small></h1>'
               '<div class=status id=st></div>' + nav + '</header>')
     main_html = ('<main><section class=on id=secA></section>'
-                 '<section id=secD></section><section id=secB></section></main>')
+                 '<section id=secD></section></main>')
     html = HEAD + header + main_html + \
         "<script>const DATA=" + json.dumps(data) + ";</script>" + BODY_JS
 
@@ -319,7 +262,7 @@ def main():
         f.write(html)
     size_mb = os.path.getsize(args.out) / 1e6
     print(f"[dashboard] wrote {args.out} ({size_mb:.2f} MB)")
-    print(f"[dashboard] cases={len(data['cases'])} demos={len(data['demos'])} scraped={len(data['scraped'])}")
+    print(f"[dashboard] cases={len(data['cases'])} demos={len(data['demos'])}")
     if args.open:
         print(f"[dashboard] open -> file://{args.out}")
 

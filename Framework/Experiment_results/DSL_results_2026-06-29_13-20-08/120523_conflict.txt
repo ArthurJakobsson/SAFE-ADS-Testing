@@ -1,0 +1,1 @@
+{"at_fault_vehicle": "Vehicle_1", "struck_vehicle": "Vehicle_2", "impact_type": "T-bone", "point_of_impact": "right side of Vehicle_1 and front of Vehicle_2", "description": "Vehicle_1 drifted left, over-corrected, re-entered the road, crossed the center line, and was struck on the right side by the front of Vehicle_2 traveling in the opposite direction."}

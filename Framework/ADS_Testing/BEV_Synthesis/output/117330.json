@@ -6,28 +6,29 @@
   "animated": true,
   "frames": 16,
   "fps": 8,
+  "collision_frame": 8,
   "agents": [
     {
       "label": "V1",
       "is_ego": true,
-      "cx": 5.3,
-      "cy": 1.75,
-      "yaw_deg": 180.0,
-      "speed_mph": 25.0,
-      "action": "Rotate Counterclockwise",
+      "cx": -5.4,
+      "cy": -1.75,
+      "yaw_deg": 0.0,
+      "speed_mph": 50.0,
+      "action": "Move forward",
       "size": [
-        4.6,
-        1.85
+        4.8,
+        1.95
       ]
     },
     {
       "label": "V2",
       "is_ego": false,
-      "cx": -5.3,
-      "cy": -1.75,
-      "yaw_deg": 0.0,
-      "speed_mph": 25.0,
-      "action": "Rotate Counterclockwise",
+      "cx": 5.3,
+      "cy": 1.75,
+      "yaw_deg": 180.0,
+      "speed_mph": 50.0,
+      "action": "Enter the Wrong Way",
       "size": [
         4.6,
         1.85

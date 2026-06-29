@@ -1,0 +1,1 @@
+{'Road type': 'Straight', 'Number of cars': 2, 'Driving direction': 'opposite direction'}

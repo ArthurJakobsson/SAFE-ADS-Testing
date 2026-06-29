@@ -1,20 +1,21 @@
 {
   "case_id": "115565",
-  "road_type": "Straight",
+  "road_type": "Intersection",
   "n_lanes": 2,
   "stem": null,
   "animated": true,
   "frames": 16,
   "fps": 8,
+  "collision_frame": 8,
   "agents": [
     {
       "label": "V1",
       "is_ego": true,
-      "cx": -5.4,
-      "cy": -1.75,
-      "yaw_deg": 0.0,
-      "speed_mph": 25.0,
-      "action": "Stop, Move forward",
+      "cx": 5.4,
+      "cy": 1.75,
+      "yaw_deg": 180.0,
+      "speed_mph": 55.0,
+      "action": "Turn left",
       "size": [
         4.8,
         1.95
@@ -23,11 +24,11 @@
     {
       "label": "V2",
       "is_ego": false,
-      "cx": -1.75,
-      "cy": 5.4,
-      "yaw_deg": -90.0,
-      "speed_mph": 25.0,
-      "action": "Stop, Move forward",
+      "cx": 1.75,
+      "cy": -5.4,
+      "yaw_deg": 90.0,
+      "speed_mph": 55.0,
+      "action": "Move forward",
       "size": [
         4.8,
         1.95
@@ -35,7 +36,9 @@
     }
   ],
   "channels_used": [
+    "intersections",
     "generic_drivable_areas",
+    "crosswalks",
     "lane_groups_polygons",
     "road_segments",
     "vehicle",

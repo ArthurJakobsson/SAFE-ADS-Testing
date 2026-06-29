@@ -1,0 +1,27 @@
+```json
+{
+  "Actors": [
+    {
+      "Vehicle_1": {
+        "Model": "Sedan",
+        "Initial_position": "S2N",
+        "Actions": "Move forward",
+        "Speed": "45"
+      },
+      "Vehicle_2": {
+        "Model": "SUV",
+        "Initial_position": "E2W",
+        "Actions": "Move forward",
+        "Speed": "45"
+      }
+    }
+  ],
+  "Road network": {
+    "Number of lanes": "3"
+  },
+  "Env": {
+    "Time": "Nighttime",
+    "Weather": "Clear"
+  }
+}
+```

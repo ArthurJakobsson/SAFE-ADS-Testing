@@ -24,6 +24,7 @@ import json
 import math
 import os
 import pickle
+import re
 from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Tuple
 
@@ -52,6 +53,57 @@ DIRECTION = {
     "N2S": (-math.pi / 2,   (0.0, -1.0), -1),   # south-bound: west side (x<0)
 }
 
+# Action phrasings meaning "this vehicle leaves its lane and crosses the centreline into
+# oncoming traffic" (head-on / wrong-way). The keep-right placement + lane-keeping rollout would
+# otherwise drive the at-fault car straight down its own lane, so it would pass the victim in the
+# adjacent lane and never collide. We give these a dedicated centreline-crossing maneuver in
+# _step(). Kept deliberately specific so it never fires on intersection "crossing traffic",
+# "Turn left/right", "Merge", "Move forward" or "Stop".
+CROSS_KEYWORDS = (
+    "wrong way", "wrong-way", "oncoming", "head-on", "head on", "headon",
+    "center line", "centerline", "centre line", "centreline", "median",
+    "veer", "swerve", "lost control", "opposing lane", "into the oppos",
+    "cross the cent", "crossed the cent", "crosses the cent", "crossing the cent",
+)
+
+
+def _is_crossing(action) -> bool:
+    a = str(action or "").lower()
+    return any(k in a for k in CROSS_KEYWORDS)
+
+
+# An at-fault vehicle is the one that *maneuvers into* the conflict (turns across a path, merges,
+# crosses the centreline, ...). The other vehicle is the victim travelling straight.
+MANEUVER_KEYWORDS = CROSS_KEYWORDS + ("turn", "left", "right", "merg")
+
+
+def _is_maneuver(action) -> bool:
+    a = str(action or "").lower()
+    return any(k in a for k in MANEUVER_KEYWORDS)
+
+
+def _conflict_at_fault(dsl, n_agents):
+    """Index of the at-fault/striking vehicle taken from the DSL 'Conflict' block (Stage-3 #3),
+    or None if the field is absent/unparseable (then the BEV falls back to a heuristic)."""
+    c = dsl.get("Conflict", dsl.get("conflict"))
+    if not isinstance(c, dict):
+        return None
+    for key in ("at_fault_vehicle", "at_fault", "striking_vehicle", "initiator"):
+        v = c.get(key)
+        if v:
+            m = re.search(r"(\d+)", str(v))
+            if m:
+                idx = int(m.group(1)) - 1
+                if 0 <= idx < n_agents:
+                    return idx
+    return None
+
+
+def _heuristic_at_fault(agents):
+    """Fallback when the DSL has no Conflict block: the single vehicle with a maneuver action."""
+    cand = [i for i, a in enumerate(agents) if _is_maneuver(a.action)]
+    return cand[0] if len(cand) == 1 else None
+
 
 # ------------------------------------------------------------------------------------------
 # scene representation
@@ -70,6 +122,9 @@ class Agent:
     uy: float = 0.0
     speed_mps: float = 11.0
     action: str = ""
+    lat0: float = 0.0        # signed lateral lane offset at spawn (used by centreline-crossing)
+    lat_is_y: bool = True    # lateral axis is y for E/W travel, x for N/S travel
+    cross: bool = False      # action means "cross the centreline into oncoming traffic"
 
 
 @dataclass
@@ -327,6 +382,7 @@ def build_scene(dsl: dict, road_type: str) -> Scene:
     actors = parse_actors(dsl)
     n_lanes = get_num_lanes(dsl)
     scene = Scene(road_type=road_type, notes={"n_lanes": n_lanes, "n_actors": len(actors)})
+    scene.notes["conflict_at_fault"] = _conflict_at_fault(dsl, len(actors))  # explicit at-fault (#3)
 
     if road_type == "Curve":
         cl = _curved_centerline()
@@ -401,6 +457,11 @@ def build_scene(dsl: dict, road_type: str) -> Scene:
             scene.add_static(name, ramp)
         scene.divider_lines.append((ramp_cl, "lane_divider"))
         _place_agents(scene, actors, axis="EW", road_type=road_type)
+        # (#2) the merging vehicle approaches along the ramp, not the main carriageway
+        scene.notes["ramp_idx"] = next(
+            (i for i, a in enumerate(actors)
+             if "merg" in str(a["action"]).lower() or "ramp" in str(a["init"]).lower()), None)
+        scene.notes["ramp_start"] = (float(ramp_cl[0][0]), float(ramp_cl[0][1]))
         return scene
 
     # default: Straight
@@ -434,10 +495,13 @@ def _place_agents(scene: Scene, actors: List[dict], axis: str, road_type: str,
             cy = -uy * back
 
         is_ego = (idx == 0)  # Vehicle_1 is the case/ego vehicle in SAFE
+        lat_is_y = d in ("W2E", "E2W")   # lateral lives on y for E/W travel, on x for N/S
         scene.agents.append(Agent(cx=cx, cy=cy, yaw=yaw, dx=dx, dy=dy,
                                   is_ego=is_ego, label=f"V{idx + 1}",
                                   ux=ux, uy=uy, speed_mps=_speed_mps(a["speed"]),
-                                  action=str(a["action"] or "")))
+                                  action=str(a["action"] or ""),
+                                  lat0=lateral, lat_is_y=lat_is_y,
+                                  cross=_is_crossing(a["action"])))
 
 
 def _speed_mps(speed):
@@ -460,6 +524,8 @@ def simulate(scene: Scene, frames: int, dt: float):
             "yaw": ag.yaw, "dx": ag.dx, "dy": ag.dy, "is_ego": ag.is_ego,
             "v": v, "act": (ag.action or "").lower(),
             "decel": v / max(0.1, 0.6 * frames * dt),
+            "ux": ag.ux, "uy": ag.uy, "lat0": ag.lat0,
+            "lat_is_y": ag.lat_is_y, "cross": ag.cross,
         })
     seq = []
     for _ in range(frames):
@@ -467,6 +533,9 @@ def simulate(scene: Scene, frames: int, dt: float):
         for s in state:
             _step(s, dt)
     return seq
+
+
+CROSS_LEN = 18.0  # metres before the collision point over which a wrong-way car swerves across
 
 
 def _step(s, dt):
@@ -477,12 +546,128 @@ def _step(s, dt):
     if ("left" in act or "right" in act) and d2o < 14.0:  # turn through the junction
         rate = math.radians(55.0)
         s["yaw"] += (rate if "left" in act else -rate) * dt
-    if ("lane" in act or "merg" in act) and d2o > 6.0:   # gentle one-lane lateral drift
+    if s["cross"]:
+        # head-on / wrong-way: migrate the at-fault car from its own lane (lat0) across the
+        # centreline into the oncoming lane (-lat0) so the two trajectories actually intersect.
+        # The swerve is a smoothstep over the last CROSS_LEN metres before the origin (the
+        # collision point), driven by the longitudinal coordinate proj = (x,y)·(ux,uy):
+        #   proj <= -CROSS_LEN -> still in own lane;  proj >= 0 -> fully in the oncoming lane.
+        proj = s["x"] * s["ux"] + s["y"] * s["uy"]
+        if proj <= -CROSS_LEN:
+            f = 0.0
+        elif proj >= 0.0:
+            f = 1.0
+        else:
+            t = (proj + CROSS_LEN) / CROSS_LEN
+            f = t * t * (3.0 - 2.0 * t)               # smoothstep
+        lat = s["lat0"] * (1.0 - 2.0 * f)             # lat0 -> -lat0
+        if s["lat_is_y"]:
+            s["y"] = lat
+        else:
+            s["x"] = lat
+    elif ("lane" in act or "merg" in act) and d2o > 6.0:  # gentle one-lane lateral drift
         perpx, perpy = -math.sin(s["yaw"]), math.cos(s["yaw"])
         s["x"] += perpx * 1.2 * dt
         s["y"] += perpy * 1.2 * dt
     s["x"] += s["v"] * math.cos(s["yaw"]) * dt
     s["y"] += s["v"] * math.sin(s["yaw"]) * dt
+
+
+def _sat_overlap(A: np.ndarray, B: np.ndarray) -> bool:
+    """Separating-axis test for two convex polygons (here, oriented vehicle boxes in metres)."""
+    for poly in (A, B):
+        n = len(poly)
+        for i in range(n):
+            edge = poly[(i + 1) % n] - poly[i]
+            axis = np.array([-edge[1], edge[0]], dtype=float)
+            nrm = float(np.hypot(*axis))
+            if nrm < 1e-9:
+                continue
+            axis /= nrm
+            pa, pb = A @ axis, B @ axis
+            if pa.max() < pb.min() or pb.max() < pa.min():
+                return False
+    return True
+
+
+def _latch_impact(seq, agents):
+    """Hold the collision once it happens. Real cars don't drive through each other: we find the
+    frame where the two closest boxes overlap most (deepest penetration ~ min centre distance
+    among overlapping frames) and freeze every later frame at that pose. Makes the crash
+    unmistakable and held, instead of a one-frame clip as vehicles pass through. Returns the
+    impact frame index, or None if no boxes ever overlap (then the animation is unchanged)."""
+    sizes = [(a.dx, a.dy) for a in agents]
+    best_f, best_d = None, float("inf")
+    for fi, st in enumerate(seq):
+        boxes = [box_corners_bev(cx, cy, yaw, dx, dy) for (cx, cy, yaw, dx, dy, _) in st]
+        for i in range(len(boxes)):
+            for j in range(i + 1, len(boxes)):
+                if _sat_overlap(boxes[i], boxes[j]):
+                    d = math.hypot(st[i][0] - st[j][0], st[i][1] - st[j][1])
+                    if d < best_d:
+                        best_d, best_f = d, fi
+    if best_f is not None:
+        for fi in range(best_f + 1, len(seq)):
+            seq[fi] = seq[best_f]
+    return best_f
+
+
+def _stage_collision(scene, seq):
+    """Make the primary conflict pair actually collide (#1/#2).
+
+    The plain rollout keeps every car lane-keeping, so angle / T-bone / merge crashes never
+    converge (only head-on did, by symmetry). Here we identify the at-fault vehicle (the one that
+    maneuvers into the conflict) and steer it along a smooth quadratic-Bezier path that intercepts
+    the victim at the victim's near-origin lane position, while sliding the victim longitudinally
+    so it is at that point at the mid frame. The yaw follows the path tangent, so the maneuver
+    reads as a turn / merge / centreline-cross. _latch_impact then holds the crash.
+
+    No-op when there is no single clear at-fault vehicle (e.g. two cars already on crossing paths).
+    """
+    agents = scene.agents
+    if len(agents) < 2 or not seq:
+        return
+    af = scene.notes.get("conflict_at_fault")
+    if af is None:
+        af = _heuristic_at_fault(agents)
+    if af is None or not (0 <= af < len(agents)):
+        return
+    others = [i for i in range(len(agents)) if i != af]
+    if not others:
+        return
+    vic = others[0]
+    frames = len(seq)
+    mid = max(1, frames // 2)
+    V, A = agents[vic], agents[af]
+
+    # victim impact pose = its lane line at the origin crossing; slide it there for the mid frame
+    if V.lat_is_y:
+        Ix, Iy, dxs, dys = 0.0, V.cy, -V.cx, 0.0
+    else:
+        Ix, Iy, dxs, dys = V.cx, 0.0, 0.0, -V.cy
+    for f in range(frames):
+        x, y, yaw, dx, dy, ego = seq[f][vic]
+        seq[f][vic] = (x + dxs, y + dys, yaw, dx, dy, ego)
+
+    # striking vehicle: smooth intercept from its approach point to the impact point
+    ramp_start = scene.notes.get("ramp_start")
+    if ramp_start is not None and af == scene.notes.get("ramp_idx"):
+        Sx, Sy = ramp_start                                   # (#2) approach along the on-ramp
+    else:
+        Sx, Sy = seq[0][af][0], seq[0][af][1]
+    dist = math.hypot(Ix - Sx, Iy - Sy)
+    Cx, Cy = Sx + A.ux * 0.6 * dist, Sy + A.uy * 0.6 * dist    # control pt: leave along own heading
+    last_yaw = seq[0][af][2]
+    for f in range(frames):
+        u = min(1.0, f / mid)
+        om = 1.0 - u
+        px = om * om * Sx + 2 * om * u * Cx + u * u * Ix
+        py = om * om * Sy + 2 * om * u * Cy + u * u * Iy
+        tx = 2 * om * (Cx - Sx) + 2 * u * (Ix - Cx)
+        ty = 2 * om * (Cy - Sy) + 2 * u * (Iy - Cy)
+        yaw = math.atan2(ty, tx) if (abs(tx) + abs(ty)) > 1e-6 else last_yaw
+        last_yaw = yaw
+        seq[f][af] = (px, py, yaw, A.dx, A.dy, A.is_ego)
 
 
 # ------------------------------------------------------------------------------------------
@@ -505,9 +690,12 @@ def _save_case(case_id, dsl, road_type, out_dir, canvas, patch, frames=1, fps=6)
     json_path = os.path.join(out_dir, f"{case_id}.json")
 
     animated = bool(frames and frames > 1)
+    collision_frame = None
     if animated:
         dt = 1.0 / fps
         seq = simulate(scene, frames, dt)
+        _stage_collision(scene, seq)                          # steer the at-fault car into the victim
+        collision_frame = _latch_impact(seq, scene.agents)   # hold the crash once it lands
         stack = np.zeros((frames, 18, canvas[0], canvas[1]), dtype=np.int8)
         imgs = []
         for fi, states in enumerate(seq):
@@ -517,10 +705,12 @@ def _save_case(case_id, dsl, road_type, out_dir, canvas, patch, frames=1, fps=6)
             imgs.append(Image.fromarray(
                 visualize_map_nuplan(bevf, target_size=512, ego_canvas_polygon=ego)))
         np.savez_compressed(npz_path, gt_bev_masks=stack)          # (T,18,H,W)
-        imgs[len(imgs) // 2].save(png_path)                        # representative frame
+        # representative still = the impact frame when there is one, else the mid frame
+        rep_i = collision_frame if collision_frame is not None else len(imgs) // 2
+        imgs[rep_i].save(png_path)
         imgs[0].save(gif_path, save_all=True, append_images=imgs[1:],
                      duration=int(1000 / fps), loop=0, disposal=2)
-        rep = stack[len(stack) // 2]
+        rep = stack[rep_i]
         bev_shape = list(stack.shape)
     else:
         bevf = base.copy()
@@ -537,6 +727,7 @@ def _save_case(case_id, dsl, road_type, out_dir, canvas, patch, frames=1, fps=6)
         "case_id": str(case_id), "road_type": road_type,
         "n_lanes": scene.notes.get("n_lanes"), "stem": scene.notes.get("stem"),
         "animated": animated, "frames": int(frames) if animated else 1, "fps": fps,
+        "collision_frame": collision_frame,
         "agents": [{"label": a.label, "is_ego": a.is_ego,
                     "cx": round(a.cx, 2), "cy": round(a.cy, 2),
                     "yaw_deg": round(math.degrees(a.yaw), 1),

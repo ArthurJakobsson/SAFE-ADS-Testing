@@ -1,0 +1,1 @@
+{'Road type': 'Intersection', 'Number of cars': 2, 'Driving direction': 'crossing traffic'}

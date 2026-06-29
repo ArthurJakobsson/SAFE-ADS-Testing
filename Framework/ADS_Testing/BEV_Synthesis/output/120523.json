@@ -6,6 +6,7 @@
   "animated": true,
   "frames": 16,
   "fps": 8,
+  "collision_frame": 8,
   "agents": [
     {
       "label": "V1",
@@ -14,7 +15,7 @@
       "cy": -1.75,
       "yaw_deg": 0.0,
       "speed_mph": 25.0,
-      "action": "Move forward",
+      "action": "Enter the Wrong Way",
       "size": [
         4.6,
         1.85
@@ -23,14 +24,14 @@
     {
       "label": "V2",
       "is_ego": false,
-      "cx": 5.35,
+      "cx": 5.4,
       "cy": 1.75,
       "yaw_deg": 180.0,
       "speed_mph": 25.0,
       "action": "Move forward",
       "size": [
-        4.7,
-        1.9
+        4.8,
+        1.95
       ]
     }
   ],

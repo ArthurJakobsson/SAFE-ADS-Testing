@@ -1,0 +1,27 @@
+### Analysis Process
+
+#### Step 1 - Extract the road network
+- The summary states: "V1 was stopped in the mouth of a commercial driveway facing west, waiting to make a left turn onto a north-south two-lane, two-way road."
+- The sketch shows a main north-south road intersecting with a commercial driveway (a perpendicular or near-perpendicular connection).
+- Since the driveway connects to the main road in a "T" shape (one road ending at the side of another), this is a **T-intersection**.
+
+> ✅ Road type: **T-intersection**
+
+#### Step 2 - Extract the number of cars involved in the crash
+- The summary mentions two vehicles: V1 and V2.
+- Both were involved in the collision, as stated: “the front of V2 struck the left side of V1”.
+
+> ✅ Number of cars: **2**
+
+#### Step 3 - Determine the initial driving direction of the cars
+- V1 was stopped in the driveway facing **west**, waiting to make a **left turn** onto the north-south road (i.e., turning toward the north).
+- V2 was traveling **north** on the main road.
+- At the moment of impact, V1 was entering the roadway from the side (driveway), and V2 was moving along the main road — so their paths were **crossing**.
+- Since the road type is **T-intersection**, we can use “crossing traffic” to describe their initial directions.
+
+> ✅ Driving direction: **crossing traffic**
+
+---
+
+### Final Output:
+{'Road type': 'T-intersection', 'Number of cars': 2, 'Driving direction': 'crossing traffic'}

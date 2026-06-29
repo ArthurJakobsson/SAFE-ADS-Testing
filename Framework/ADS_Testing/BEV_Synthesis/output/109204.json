@@ -1,42 +1,44 @@
 {
   "case_id": "109204",
-  "road_type": "Merging",
+  "road_type": "Intersection",
   "n_lanes": 5,
   "stem": null,
   "animated": true,
   "frames": 16,
   "fps": 8,
+  "collision_frame": 8,
   "agents": [
     {
       "label": "V1",
       "is_ego": true,
-      "cx": -5.3,
+      "cx": -5.4,
       "cy": -1.75,
       "yaw_deg": 0.0,
       "speed_mph": 50.0,
-      "action": "Move forward and begin a left turn",
+      "action": "Turn left",
       "size": [
-        4.6,
-        1.85
+        4.8,
+        1.95
       ]
     },
     {
       "label": "V2",
       "is_ego": false,
-      "cx": -12.6,
+      "cx": -16.0,
       "cy": -5.25,
       "yaw_deg": 0.0,
       "speed_mph": 50.0,
-      "action": "Move forward and approach the intersection",
+      "action": "Move forward",
       "size": [
-        5.2,
-        2.0
+        12.0,
+        2.5
       ]
     }
   ],
   "channels_used": [
+    "intersections",
     "generic_drivable_areas",
-    "lane_group_connectors",
+    "crosswalks",
     "lane_groups_polygons",
     "road_segments",
     "vehicle",

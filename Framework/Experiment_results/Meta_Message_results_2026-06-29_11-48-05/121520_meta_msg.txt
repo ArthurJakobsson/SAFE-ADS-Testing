@@ -1,0 +1,30 @@
+### Analysis Process
+
+#### Step 1 - Extract the road network
+1. **Read the crash summary** to identify the road structure:
+   - "Vehicle one (V1 - case vehicle)...was traveling south in the left southbound lane of a five-lane, two-way urban road."
+   - "Vehicle two (V2)...was traveling north in the middle left-turn lane of the same road."
+   - The sketch shows a **four-way intersection** with roads crossing each other at right angles, with vehicles moving across each other.
+   - There are **four openings** (north, south, east, west), indicating a **standard intersection**.
+
+✅ **Road type: Intersection**
+
+#### Step 2 - Extract the number of cars involved in the crash
+1. The summary explicitly describes **two vehicles**: V1 (Chevrolet Monte Carlo) and V2 (Pontiac Firebird).
+2. Both were involved in the collision as described: “the front of V1 struck the right side of V2”.
+
+✅ **Number of cars: 2**
+
+#### Step 3 - Determine the initial driving direction of the cars
+1. From the summary:
+   - V1 was traveling **south**.
+   - V2 was traveling **north** and initiating a **left turn**.
+2. Since they were on perpendicular roads (as shown in the sketch and described as crossing) and moving across each other, this is a **crossing traffic** scenario.
+3. Important note: 'crossing traffic' is only valid for **Intersection** or **T-intersection** — which we already determined is **Intersection**.
+
+✅ **Driving direction: crossing traffic**
+
+---
+
+### Final Output:
+{'Road type': 'Intersection', 'Number of cars': 2, 'Driving direction': 'crossing traffic'}
