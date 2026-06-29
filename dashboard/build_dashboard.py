@@ -1,0 +1,328 @@
+"""Build a single self-contained HTML dashboard to debug both project tracks.
+
+Scans the repo for whatever exists and embeds everything (images base64-inlined) into one
+standalone `dashboard.html` that opens over file:// with no server or network.
+
+Sections:
+  - Status bar: served model / env / counts.
+  - Track A (SAFE pipeline): per crash case -> input Sketch + Summary, extracted meta, DSL,
+    and the synthesized nuPlan-style BEV.
+  - Demo BEVs: the --demo synthetic BEVs (one per road type).
+  - Track B (CIREN scraper): scraped cases from the scraper manifest.
+
+Usage:
+    python dashboard/build_dashboard.py            # auto-discovers latest results
+    python dashboard/build_dashboard.py --open     # also print the file:// URL
+"""
+import argparse
+import base64
+import glob
+import json
+import os
+import pickle
+import sys
+
+REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+FRAMEWORK = os.path.join(REPO, "Framework")
+BEV_OUT = os.path.join(FRAMEWORK, "ADS_Testing", "BEV_Synthesis", "output")
+# Scraped-dataset manifests (Track B). The modern CIREN 2017+ dataset is the main one;
+# _scratch_out is the legacy byte-exact validation set. Embedding every image would make a
+# huge HTML, so we cap how many scraped cases get inlined (the rest are counted, not shown).
+SCRAPE_SOURCES = [
+    os.path.join(FRAMEWORK, "Crash_dataset_CIREN2017"),
+    os.path.join(FRAMEWORK, "Crash_dataset_tools", "_scratch_out"),
+]
+SCRAPE_EMBED_CAP = 48
+
+
+def _b64(path, mime):
+    try:
+        with open(path, "rb") as f:
+            return f"data:{mime};base64," + base64.b64encode(f.read()).decode()
+    except Exception:
+        return None
+
+
+def _img(path):
+    if not path or not os.path.exists(path):
+        return None
+    p = path.lower()
+    mime = "image/jpeg" if p.endswith((".jpg", ".jpeg")) else "image/gif" if p.endswith(".gif") else "image/png"
+    return _b64(path, mime)
+
+
+def _newest(pattern):
+    hits = glob.glob(pattern, recursive=True)
+    return max(hits, key=os.path.getmtime) if hits else None
+
+
+def _load_pickle(path):
+    try:
+        with open(path, "rb") as f:
+            return pickle.load(f)
+    except Exception:
+        return None
+
+
+def collect():
+    data = {"status": {}, "cases": [], "demos": [], "scraped": [], "legend": []}
+
+    # --- env / status ---
+    data["status"] = {
+        "model": os.environ.get("SAFE_MODEL", "(set SAFE_MODEL)"),
+        "base_url": os.environ.get("OPENAI_BASE_URL", "(not set)"),
+        "repo": REPO,
+    }
+
+    # --- latest meta + DSL pickles ---
+    meta_pkl = _newest(os.path.join(FRAMEWORK, "Experiment_results", "Meta_Message_results_*", "meta_data_results.pkl"))
+    dsl_pkl = _newest(os.path.join(FRAMEWORK, "Experiment_results", "DSL_results_*", "DSL_extraction_results.pkl"))
+    meta_by_case, road_by_case = {}, {}
+    if meta_pkl:
+        rows = _load_pickle(meta_pkl) or []
+        for r in rows:
+            meta_by_case[str(r[-1])] = {"road_type": r[0], "num_cars": r[1], "direction": r[2]}
+            road_by_case[str(r[-1])] = r[0]
+    dsl_by_case = {}
+    if dsl_pkl:
+        for d in (_load_pickle(dsl_pkl) or []):
+            dsl_by_case[str(d.get("Scenario"))] = d
+    data["status"]["meta_pkl"] = meta_pkl
+    data["status"]["dsl_pkl"] = dsl_pkl
+
+    # --- BEV outputs: scan per-case sidecars directly so both demo and real BEVs always show
+    # regardless of which bev_from_dsl run wrote manifest.json last ---
+    bev_by_case = {}
+    bev_manifest = os.path.join(BEV_OUT, "manifest.json")
+    if os.path.exists(bev_manifest):
+        try:
+            with open(bev_manifest) as f:
+                data["legend"] = json.load(f).get("legend", [])
+        except Exception:
+            pass
+    for jp in glob.glob(os.path.join(BEV_OUT, "*.json")):
+        if os.path.basename(jp) == "manifest.json":
+            continue
+        try:
+            with open(jp) as f:
+                info = json.load(f)
+        except Exception:
+            continue
+        stem = os.path.splitext(os.path.basename(jp))[0]
+        cid = str(info.get("case_id", stem))
+        # prefer the animated GIF when present, else the representative PNG
+        gif = info.get("gif")
+        media = os.path.join(BEV_OUT, gif) if gif else os.path.join(BEV_OUT, info.get("png", stem + ".png"))
+        if gif and not os.path.exists(media):
+            media = os.path.join(BEV_OUT, info.get("png", stem + ".png"))
+        bev_by_case[cid] = {"png": _img(media), "info": info, "animated": bool(gif)}
+
+    # --- Track A: crash cases (input dataset) ---
+    ds_dir = os.path.join(FRAMEWORK, "Crash_dataset")
+    case_ids = sorted([d for d in os.listdir(ds_dir) if os.path.isdir(os.path.join(ds_dir, d))]) \
+        if os.path.isdir(ds_dir) else []
+    for cid in case_ids:
+        cdir = os.path.join(ds_dir, cid)
+        summ = os.path.join(cdir, "Summary.txt")
+        summary = open(summ, encoding="utf-8", errors="ignore").read() if os.path.exists(summ) else None
+        bev = bev_by_case.get(cid)
+        data["cases"].append({
+            "case_id": cid,
+            "sketch": _img(os.path.join(cdir, "Sketch.jpg")),
+            "summary": summary,
+            "meta": meta_by_case.get(cid),
+            "dsl": dsl_by_case.get(cid),
+            "bev_png": bev["png"] if bev else None,
+            "bev_info": bev["info"] if bev else None,
+        })
+
+    # --- demo BEVs (case ids starting with demo_) ---
+    for cid, bev in sorted(bev_by_case.items()):
+        if cid.startswith("demo_"):
+            data["demos"].append({"case_id": cid, "bev_png": bev["png"], "bev_info": bev["info"]})
+
+    # --- Track B: scraped CIREN cases (modern 2017+ dataset + legacy validation) ---
+    counts = {"ok": 0, "fail": 0, "skip": 0, "total": 0}
+    embedded = 0
+    for src in SCRAPE_SOURCES:
+        scr_manifest = os.path.join(src, "manifest.json")
+        if not os.path.exists(scr_manifest):
+            continue
+        try:
+            with open(scr_manifest) as f:
+                entries = json.load(f)
+            if isinstance(entries, dict):
+                entries = entries.get("cases", entries.get("entries", []))
+        except Exception as ex:
+            data["status"]["scrape_error"] = str(ex)
+            continue
+        for e in entries:
+            cid = str(e.get("case_id", "?"))
+            st = e.get("status", "?")
+            counts["total"] += 1
+            counts[st] = counts.get(st, 0) + 1
+            # only inline successful cases, up to the cap (keeps HTML small)
+            if st != "ok" or embedded >= SCRAPE_EMBED_CAP:
+                continue
+            sp = e.get("sketch_path") or os.path.join(src, cid, "Sketch.jpg")
+            up = e.get("summary_path") or os.path.join(src, cid, "Summary.txt")
+            if not (os.path.exists(sp) and os.path.exists(up)):
+                continue
+            summary = open(up, encoding="utf-8", errors="ignore").read()
+            data["scraped"].append({
+                "case_id": cid, "status": st, "note": e.get("note", ""),
+                "sketch": _img(sp), "summary": summary,
+                "summary_chars": e.get("summary_chars"), "sketch_bytes": e.get("sketch_bytes"),
+            })
+            embedded += 1
+    data["scrape_counts"] = counts
+    return data
+
+
+HEAD = """<!doctype html><html lang=en><head><meta charset=utf-8>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<title>SAFE — Track A/B dashboard</title>
+<style>
+:root{--bg:#16181d;--panel:#1e2128;--panel2:#252933;--line:#333a45;--fg:#e6e9ef;--mut:#9aa4b2;--acc:#5cc8ff;--ok:#4ade80;--warn:#fbbf24;--err:#f87171;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--fg);font:14px/1.5 ui-sans-serif,system-ui,Segoe UI,Roboto,Arial}
+header{position:sticky;top:0;z-index:10;background:linear-gradient(180deg,#1b1e25,#16181d);border-bottom:1px solid var(--line);padding:14px 20px}
+h1{margin:0;font-size:18px;letter-spacing:.3px}
+h1 small{color:var(--mut);font-weight:400;font-size:12px;margin-left:8px}
+.status{display:flex;flex-wrap:wrap;gap:8px 18px;margin-top:8px;color:var(--mut);font-size:12px}
+.status b{color:var(--fg)} .status code{color:var(--acc)}
+nav{display:flex;gap:6px;margin-top:10px}
+nav button{background:var(--panel2);color:var(--fg);border:1px solid var(--line);border-radius:8px;padding:6px 12px;cursor:pointer;font-size:13px}
+nav button.on{background:var(--acc);color:#06222e;border-color:var(--acc);font-weight:600}
+main{padding:18px 20px;max-width:1500px;margin:0 auto}
+section{display:none} section.on{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(340px,1fr));gap:16px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.card h3{margin:0;padding:10px 12px;background:var(--panel2);border-bottom:1px solid var(--line);font-size:14px;display:flex;justify-content:space-between;align-items:center}
+.tag{font-size:11px;padding:2px 8px;border-radius:20px;background:#2b3340;color:var(--mut)}
+.tag.ok{background:#10331f;color:var(--ok)} .tag.warn{background:#33270f;color:var(--warn)} .tag.err{background:#331717;color:var(--err)}
+.row{display:flex;gap:10px;padding:12px}
+.col{flex:1;min-width:0}
+.imgwrap{background:#0d0f13;border:1px solid var(--line);border-radius:8px;overflow:hidden;display:flex;align-items:center;justify-content:center;min-height:150px}
+.imgwrap img{width:100%;display:block;image-rendering:pixelated}
+.lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.4px;margin:0 0 4px}
+.summary{white-space:pre-wrap;font-size:12.5px;max-height:150px;overflow:auto;background:var(--panel2);border:1px solid var(--line);border-radius:8px;padding:8px;color:#cfd6e0}
+pre.dsl{margin:0;font-size:11.5px;max-height:240px;overflow:auto;background:#0d0f13;border:1px solid var(--line);border-radius:8px;padding:8px;color:#bfe6ff}
+.meta{display:flex;gap:6px;flex-wrap:wrap;padding:0 12px 12px}
+.chip{font-size:11px;background:#222a36;border:1px solid var(--line);border-radius:6px;padding:3px 8px;color:#cdd6e2}
+.empty{color:var(--mut);font-style:italic;padding:8px}
+.legend{display:flex;flex-wrap:wrap;gap:6px 12px;background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:14px}
+.legend span{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;color:var(--mut)}
+.legend i{width:12px;height:12px;border-radius:3px;display:inline-block;border:1px solid #0006}
+.note{color:var(--mut);font-size:12px;margin:0 0 14px}
+</style></head><body>"""
+
+BODY_JS = r"""
+<script>
+const $=(t,c,a={})=>{const e=document.createElement(t);if(c)e.className=c;for(const k in a)e[k]=a[k];return e};
+function imgCol(lbl,src){const c=$('div','col');c.append(Object.assign($('p','lbl'),{textContent:lbl}));
+ const w=$('div','imgwrap'); if(src){w.append($('img','',{src}))} else {w.append(Object.assign($('div','empty'),{textContent:'—'}))} c.append(w); return c;}
+function textCol(lbl,txt,cls){const c=$('div','col');c.append(Object.assign($('p','lbl'),{textContent:lbl}));
+ if(txt){const d=$('div',cls);d.textContent=txt;c.append(d)} else c.append(Object.assign($('div','empty'),{textContent:'not available'})); return c;}
+
+function caseCard(c){
+ const card=$('div','card');
+ const h=$('h3'); h.append(Object.assign($('span'),{textContent:'Case '+c.case_id}));
+ const t=$('span','tag '+(c.dsl?'ok':(c.bev_png?'warn':''))); t.textContent=c.dsl?'DSL ✓':(c.bev_png?'BEV only':'input only'); h.append(t);
+ card.append(h);
+ const r1=$('div','row'); r1.append(imgCol('input sketch',c.sketch)); r1.append(imgCol('synth BEV (nuPlan-style)',c.bev_png)); card.append(r1);
+ if(c.meta){const m=$('div','meta');
+   m.append(Object.assign($('span','chip'),{textContent:'road: '+c.meta.road_type}));
+   m.append(Object.assign($('span','chip'),{textContent:'cars: '+c.meta.num_cars}));
+   m.append(Object.assign($('span','chip'),{textContent:'dir: '+c.meta.direction})); card.append(m);}
+ const r2=$('div','row'); r2.append(textCol('crash summary',c.summary,'summary')); card.append(r2);
+ if(c.dsl){const r3=$('div','row'); const col=$('div','col'); col.append(Object.assign($('p','lbl'),{textContent:'extracted DSL'}));
+   const pre=$('pre','dsl'); pre.textContent=JSON.stringify(c.dsl,null,2); col.append(pre); r3.append(col); card.append(r3);}
+ return card;
+}
+function demoCard(d){const card=$('div','card');const h=$('h3');h.append(Object.assign($('span'),{textContent:d.case_id}));
+ const t=$('span','tag ok');t.textContent=(d.bev_info&&d.bev_info.road_type)||'';h.append(t);card.append(h);
+ const r=$('div','row');r.append(imgCol('synthesized BEV',d.bev_png));card.append(r);
+ if(d.bev_info){const m=$('div','meta');(d.bev_info.agents||[]).forEach(a=>m.append(Object.assign($('span','chip'),{textContent:a.label+(a.is_ego?' (ego)':'')+' @'+a.yaw_deg+'°'})));
+   m.append(Object.assign($('span','chip'),{textContent:'lanes: '+d.bev_info.n_lanes}));card.append(m);}
+ return card;}
+function scrapeCard(s){const card=$('div','card');const h=$('h3');h.append(Object.assign($('span'),{textContent:'Case '+s.case_id}));
+ const cls=s.status&&/ok|success|done/i.test(s.status)?'ok':(/skip/i.test(s.status)?'warn':'err');
+ const t=$('span','tag '+cls);t.textContent=s.status;h.append(t);card.append(h);
+ const r1=$('div','row');r1.append(imgCol('scraped sketch',s.sketch));card.append(r1);
+ const r2=$('div','row');r2.append(textCol('scraped summary',s.summary,'summary'));card.append(r2);
+ const m=$('div','meta');if(s.summary_chars!=null)m.append(Object.assign($('span','chip'),{textContent:s.summary_chars+' chars'}));
+ if(s.sketch_bytes!=null)m.append(Object.assign($('span','chip'),{textContent:s.sketch_bytes+' img bytes'}));
+ if(s.note)m.append(Object.assign($('span','chip'),{textContent:s.note}));card.append(m);return card;}
+
+function legend(items){if(!items||!items.length)return null;const l=$('div','legend');
+ items.forEach(([n,c])=>{const s=$('span');const i=$('i');i.style.background=c;s.append(i);s.append(document.createTextNode(n));l.append(s)});return l;}
+
+(function(){
+ const st=DATA.status;
+ document.getElementById('st').innerHTML=
+   '<span>model <code>'+st.model+'</code></span>'+
+   '<span>endpoint <code>'+st.base_url+'</code></span>'+
+   '<span><b>'+DATA.cases.length+'</b> crash cases</span>'+
+   '<span><b>'+DATA.cases.filter(c=>c.dsl).length+'</b> with DSL</span>'+
+   '<span><b>'+DATA.cases.filter(c=>c.bev_png).length+'</b> with BEV</span>'+
+   '<span><b>'+DATA.demos.length+'</b> demo BEVs</span>'+
+   '<span><b>'+((DATA.scrape_counts&&DATA.scrape_counts.ok)||DATA.scraped.length)+'</b> CIREN scraped ok'+
+     (DATA.scrape_counts?(' / '+DATA.scrape_counts.total+' attempted'):'')+' (Track B)</span>';
+
+ const A=document.getElementById('secA');
+ const lg=legend(DATA.legend); if(lg)A.append(lg);
+ A.append(Object.assign($('p','note'),{textContent:'Each card: real crash sketch (input) → synthesized nuPlan-style BEV (18-channel raster) → meta → summary → extracted DSL. Run the pipeline + bev_from_dsl, then rebuild to populate DSL/BEV.'}));
+ const ga=$('div','grid'); DATA.cases.forEach(c=>ga.append(caseCard(c))); A.append(ga);
+ if(!DATA.cases.length)A.append(Object.assign($('div','empty'),{textContent:'No crash cases found.'}));
+
+ const D=document.getElementById('secD');
+ const lg2=legend(DATA.legend); if(lg2)D.append(lg2);
+ D.append(Object.assign($('p','note'),{textContent:'Synthetic BEVs (no LLM) — one per road type, to validate the rasterizer.'}));
+ const gd=$('div','grid'); DATA.demos.forEach(d=>gd.append(demoCard(d))); D.append(gd);
+ if(!DATA.demos.length)D.append(Object.assign($('div','empty'),{textContent:'No demo BEVs. Run: bev_from_dsl.py --demo'}));
+
+ const B=document.getElementById('secB');
+ const bc=DATA.scrape_counts||{};
+ B.append(Object.assign($('p','note'),{textContent:'CIREN scraped cases (Track B): real NHTSA crash narrative + scene-diagram drawing, drop-in for the SAFE pipeline. '+(bc.total?('Showing first '+DATA.scraped.length+' of '+(bc.ok||0)+' successful ('+bc.total+' attempted; '+(bc.fail||0)+' failed, '+(bc.skip||0)+' skipped).'):'')}));
+ const gb=$('div','grid'); DATA.scraped.forEach(s=>gb.append(scrapeCard(s))); B.append(gb);
+ if(!DATA.scraped.length)B.append(Object.assign($('div','empty'),{textContent:'No scraped cases yet (Track B running in the other window).'}));
+
+ const secs={A:'secA',D:'secD',B:'secB'};
+ document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
+   document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
+   for(const k in secs)document.getElementById(secs[k]).classList.remove('on');
+   document.getElementById(secs[b.dataset.s]).classList.add('on');});
+})();
+</script></body></html>"""
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--out", default=os.path.join(REPO, "dashboard", "dashboard.html"))
+    ap.add_argument("--open", action="store_true")
+    args = ap.parse_args()
+
+    data = collect()
+    nav = ('<nav><button class=on data-s=A>Track A · SAFE pipeline</button>'
+           '<button data-s=D>Demo BEVs</button>'
+           '<button data-s=B>Track B · CIREN scraper</button></nav>')
+    header = ('<header><h1>SAFE <small>crash → DSL → nuPlan-style BEV · + CIREN dataset</small></h1>'
+              '<div class=status id=st></div>' + nav + '</header>')
+    main_html = ('<main><section class=on id=secA></section>'
+                 '<section id=secD></section><section id=secB></section></main>')
+    html = HEAD + header + main_html + \
+        "<script>const DATA=" + json.dumps(data) + ";</script>" + BODY_JS
+
+    os.makedirs(os.path.dirname(args.out), exist_ok=True)
+    with open(args.out, "w", encoding="utf-8") as f:
+        f.write(html)
+    size_mb = os.path.getsize(args.out) / 1e6
+    print(f"[dashboard] wrote {args.out} ({size_mb:.2f} MB)")
+    print(f"[dashboard] cases={len(data['cases'])} demos={len(data['demos'])} scraped={len(data['scraped'])}")
+    if args.open:
+        print(f"[dashboard] open -> file://{args.out}")
+
+
+if __name__ == "__main__":
+    main()

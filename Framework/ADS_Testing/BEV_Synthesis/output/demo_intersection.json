@@ -1,0 +1,56 @@
+{
+  "case_id": "demo_intersection",
+  "road_type": "Intersection",
+  "n_lanes": 4,
+  "stem": null,
+  "animated": true,
+  "frames": 16,
+  "fps": 8,
+  "agents": [
+    {
+      "label": "V1",
+      "is_ego": true,
+      "cx": -5.3,
+      "cy": -1.75,
+      "yaw_deg": 0.0,
+      "speed_mph": 30.0,
+      "action": "Move forward",
+      "size": [
+        4.6,
+        1.85
+      ]
+    },
+    {
+      "label": "V2",
+      "is_ego": false,
+      "cx": 1.75,
+      "cy": -5.6,
+      "yaw_deg": 90.0,
+      "speed_mph": 25.0,
+      "action": "Move forward",
+      "size": [
+        5.2,
+        2.0
+      ]
+    }
+  ],
+  "channels_used": [
+    "intersections",
+    "generic_drivable_areas",
+    "crosswalks",
+    "lane_groups_polygons",
+    "road_segments",
+    "vehicle",
+    "lane_divider",
+    "road_divider"
+  ],
+  "npz": "demo_intersection.npz",
+  "png": "demo_intersection.png",
+  "gif": "demo_intersection.gif",
+  "bev_shape": [
+    16,
+    18,
+    200,
+    200
+  ]
+}

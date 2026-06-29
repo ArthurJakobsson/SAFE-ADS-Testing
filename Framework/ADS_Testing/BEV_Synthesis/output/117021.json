@@ -1,0 +1,56 @@
+{
+  "case_id": "117021",
+  "road_type": "Intersection",
+  "n_lanes": 3,
+  "stem": null,
+  "animated": true,
+  "frames": 16,
+  "fps": 8,
+  "agents": [
+    {
+      "label": "V1",
+      "is_ego": true,
+      "cx": -1.75,
+      "cy": 5.3,
+      "yaw_deg": -90.0,
+      "speed_mph": 45.0,
+      "action": "Move forward",
+      "size": [
+        4.6,
+        1.85
+      ]
+    },
+    {
+      "label": "V2",
+      "is_ego": false,
+      "cx": -5.4,
+      "cy": -1.75,
+      "yaw_deg": 0.0,
+      "speed_mph": 45.0,
+      "action": "Move forward",
+      "size": [
+        4.8,
+        1.95
+      ]
+    }
+  ],
+  "channels_used": [
+    "intersections",
+    "generic_drivable_areas",
+    "crosswalks",
+    "lane_groups_polygons",
+    "road_segments",
+    "vehicle",
+    "lane_divider",
+    "road_divider"
+  ],
+  "npz": "117021.npz",
+  "png": "117021.png",
+  "gif": "117021.gif",
+  "bev_shape": [
+    16,
+    18,
+    200,
+    200
+  ]
+}

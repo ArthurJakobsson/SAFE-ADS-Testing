@@ -1,0 +1,40 @@
+{
+  "case_id": "demo_curve",
+  "road_type": "Curve",
+  "n_lanes": 2,
+  "stem": null,
+  "animated": true,
+  "frames": 16,
+  "fps": 8,
+  "agents": [
+    {
+      "label": "V1",
+      "is_ego": true,
+      "cx": -5.4,
+      "cy": -1.75,
+      "yaw_deg": 0.0,
+      "speed_mph": 25.0,
+      "action": "Move forward",
+      "size": [
+        4.8,
+        1.95
+      ]
+    }
+  ],
+  "channels_used": [
+    "generic_drivable_areas",
+    "lane_groups_polygons",
+    "road_segments",
+    "vehicle",
+    "road_divider"
+  ],
+  "npz": "demo_curve.npz",
+  "png": "demo_curve.png",
+  "gif": "demo_curve.gif",
+  "bev_shape": [
+    16,
+    18,
+    200,
+    200
+  ]
+}

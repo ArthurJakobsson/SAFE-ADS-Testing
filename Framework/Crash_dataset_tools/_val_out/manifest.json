@@ -1,0 +1,66 @@
+[
+  {
+    "case_id": "109204",
+    "summary_path": "./_val_out/109204/Summary.txt",
+    "sketch_path": "./_val_out/109204/Sketch.jpg",
+    "status": "ok",
+    "summary_chars": 1559,
+    "sketch_bytes": 4497
+  },
+  {
+    "case_id": "115565",
+    "summary_path": "./_val_out/115565/Summary.txt",
+    "sketch_path": "./_val_out/115565/Sketch.jpg",
+    "status": "ok",
+    "summary_chars": 1406,
+    "sketch_bytes": 4497
+  },
+  {
+    "case_id": "117021",
+    "summary_path": "./_val_out/117021/Summary.txt",
+    "sketch_path": "./_val_out/117021/Sketch.jpg",
+    "status": "ok",
+    "summary_chars": 1267,
+    "sketch_bytes": 169972
+  },
+  {
+    "case_id": "117330",
+    "summary_path": "./_val_out/117330/Summary.txt",
+    "sketch_path": "./_val_out/117330/Sketch.jpg",
+    "status": "ok",
+    "summary_chars": 1139,
+    "sketch_bytes": 98914
+  },
+  {
+    "case_id": "119489",
+    "summary_path": "./_val_out/119489/Summary.txt",
+    "sketch_path": "./_val_out/119489/Sketch.jpg",
+    "status": "ok",
+    "summary_chars": 1163,
+    "sketch_bytes": 114103
+  },
+  {
+    "case_id": "119946",
+    "summary_path": "./_val_out/119946/Summary.txt",
+    "sketch_path": "./_val_out/119946/Sketch.jpg",
+    "status": "ok",
+    "summary_chars": 1411,
+    "sketch_bytes": 96085
+  },
+  {
+    "case_id": "120523",
+    "summary_path": "./_val_out/120523/Summary.txt",
+    "sketch_path": "./_val_out/120523/Sketch.jpg",
+    "status": "ok",
+    "summary_chars": 1751,
+    "sketch_bytes": 17832
+  },
+  {
+    "case_id": "121520",
+    "summary_path": "./_val_out/121520/Summary.txt",
+    "sketch_path": "./_val_out/121520/Sketch.jpg",
+    "status": "ok",
+    "summary_chars": 1445,
+    "sketch_bytes": 108862
+  }
+]

@@ -1,0 +1,79 @@
+# Analysis Process
+
+## Step 1: Extract Actors Information
+
+1. **Vehicle Entity Recognition**
+   Based on the provided crash summary, there are two vehicles involved. Therefore, under the Actors field, include both *Vehicle_1* and *Vehicle_2*.
+
+2. **Vehicle Model Recognition**
+   - **Vehicle_1**:
+     - **Description:** “a 2002 Subaru Forester, 4-door utility vehicle”
+     - **Assigned Model:** SUV
+
+   - **Vehicle_2**:
+     - **Description:** “a 2002 Buick Rendezvous, 4-door utility vehicle”
+     - **Assigned Model:** SUV
+
+3. **Vehicle Movement Behavior Recognition**
+   From the crash summary and the sketch details:
+   - **Vehicle_1** was passing the curve from east to west, and V2 was passing the curve from west to east. Due to the icy road, **Vehicle_1** crossed the center line and entered the wrong way, colliding with **Vehicle_2** in the opposite direction.
+   - The summary does not state Vehicle_1 and Vehicle_2's speed, but the **sketch** shows a speed limit of 55 mph. Therefore, assume:
+     - **Vehicle_1 Speed:** 55 mph
+     - **Vehicle_2 Speed:** 55 mph
+
+   **Final Assignments:**
+   - **Vehicle_1:**
+     - *Initial Position:* E2W
+     - *Actions:* Enter the Wrong Way
+     - *Speed:* 55
+   - **Vehicle_2:**
+     - *Initial Position:* S2E
+     - *Actions:* Move Forward
+     - *Speed:* 55
+
+---
+
+## Step 2: Extract Road Network
+
+- The summary indicates a two-lane, two-way roadway.
+- **Number of Lanes:** 2
+
+---
+
+## Step 3: Extract Environment
+
+- The summary states “It was daylight, snowing”
+- **Time:** Daytime
+- **Weather:** Snowy
+
+---
+
+## Final Output
+
+```json
+{
+  "Actors": [
+    {
+      "Vehicle_1": {
+        "Model": "SUV",
+        "Initial_position": "E2W",
+        "Actions": "Enter the Wrong Way",
+        "Speed": "55"
+      },
+      "Vehicle_2": {
+        "Model": "SUV",
+        "Initial_position": "S2E",
+        "Actions": "Move forward",
+        "Speed": "55"
+      }
+    }
+  ],
+  "Road network": {
+    "Number of lanes": "2"
+  },
+  "Env": {
+    "Time": "Daytime",
+    "Weather": "Snowy"
+  }
+}
+```

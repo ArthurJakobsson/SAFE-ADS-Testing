@@ -1,5 +1,4 @@
 import time
-from symbol import pass_stmt
 from openai import OpenAI
 import argparse
 from datetime import datetime
@@ -13,6 +12,30 @@ import pickle
 def encode_image(image_path):
     with open(image_path, "rb") as image_file:
         return base64.b64encode(image_file.read()).decode('utf-8')
+
+def _extract_json_block(text):
+    """Extract a JSON object from an LLM response, tolerant of formatting.
+
+    GPT-4o reliably wraps output in a ```json fence; open VLMs (Qwen2.5-VL etc.) are less
+    consistent, so we fall back to any ``` fence and finally to the first balanced {...}.
+    """
+    m = re.search(r'```json\s*(\{.*?\})\s*```', text, re.DOTALL)
+    if m:
+        return m.group(1)
+    m = re.search(r'```\s*(\{.*?\})\s*```', text, re.DOTALL)
+    if m:
+        return m.group(1)
+    start = text.find('{')
+    if start != -1:
+        depth = 0
+        for i in range(start, len(text)):
+            if text[i] == '{':
+                depth += 1
+            elif text[i] == '}':
+                depth -= 1
+                if depth == 0:
+                    return text[start:i + 1]
+    raise ValueError("No JSON object found in model output:\n" + text[:500])
 
 def get_dsl(record, prompts_folder, road_type, direction, model, results_path):
     # Original data
@@ -163,7 +186,7 @@ def get_dsl(record, prompts_folder, road_type, direction, model, results_path):
     with open(file_path, 'w', encoding='utf-8') as file:
         file.write(model_output)
 
-    json_match = re.search(r'```json\s*(\{.*?\})\s*```', model_output, re.DOTALL).group(1)
+    json_match = _extract_json_block(model_output)
     json_data = json.loads(json_match)
 
     return model_output, json_data

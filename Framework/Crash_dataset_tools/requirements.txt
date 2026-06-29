@@ -1,0 +1,7 @@
+requests>=2.28
+beautifulsoup4>=4.11
+lxml>=4.9
+pillow>=9.0
+# selenium is OPTIONAL -- only needed for the headless-Chrome fallback
+# (ciren_client.SeleniumCirenClient), used when Akamai 403-blocks plain requests.
+# selenium>=4.10

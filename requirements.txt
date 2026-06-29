@@ -1,0 +1,13 @@
+# SAFE pipeline — client-side dependencies.
+# The LLM is served separately by vLLM (see serving/), so these are lightweight and run in
+# any Python >=3.9 env. The vLLM SERVER deps live in the dedicated `safe-vllm` conda env
+# created by serving/install_vllm_env.sh — do NOT mix them here.
+openai>=1.40            # used by Meta_Message_Extraction.py / Scenario_Representation_Extraction.py
+pillow>=9.5             # image encoding + BEV PNG rendering
+numpy>=1.23             # BEV rasterization
+opencv-python>=4.7      # imported by some ADS_Testing utilities
+pyyaml>=6.0             # DSL templates
+
+# --- optional, only needed for Stage 4 (simulation); install as required ---
+# metadrive-simulator    # MetaDrive ADS testing
+# beamngpy               # BeamNG ADS testing (also needs a BeamNG.tech academic license)

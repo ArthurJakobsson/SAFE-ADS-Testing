@@ -1,0 +1,13 @@
+[
+  {
+    "case_id": "109204",
+    "summary_path": "/home/adteam/Documents/SAFE-ADS-Testing/Framework/Crash_dataset_tools/_scratch_out/109204/Summary.txt",
+    "sketch_path": "/home/adteam/Documents/SAFE-ADS-Testing/Framework/Crash_dataset_tools/_scratch_out/109204/Sketch.jpg",
+    "status": "partial-summary-ok-sketch-pending",
+    "summary_chars": 1559,
+    "sketch_bytes": 0,
+    "sketch_image_id": "555113862",
+    "sketch_url": "https://crashviewer.nhtsa.dot.gov/crashviewer/nass-CIREN/GetBinary.aspx?Image&ImageID=555113862&CaseID=109204&Version=0",
+    "note": "summary byte-exact match vs existing dataset; sketch endpoint verified (Content-Type img/jpg); image bytes blocked by Akamai from build env"
+  }
+]

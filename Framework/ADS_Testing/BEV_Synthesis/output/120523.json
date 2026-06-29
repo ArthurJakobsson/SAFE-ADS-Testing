@@ -1,0 +1,53 @@
+{
+  "case_id": "120523",
+  "road_type": "Straight",
+  "n_lanes": 2,
+  "stem": null,
+  "animated": true,
+  "frames": 16,
+  "fps": 8,
+  "agents": [
+    {
+      "label": "V1",
+      "is_ego": true,
+      "cx": -5.3,
+      "cy": -1.75,
+      "yaw_deg": 0.0,
+      "speed_mph": 25.0,
+      "action": "Move forward",
+      "size": [
+        4.6,
+        1.85
+      ]
+    },
+    {
+      "label": "V2",
+      "is_ego": false,
+      "cx": 5.35,
+      "cy": 1.75,
+      "yaw_deg": 180.0,
+      "speed_mph": 25.0,
+      "action": "Move forward",
+      "size": [
+        4.7,
+        1.9
+      ]
+    }
+  ],
+  "channels_used": [
+    "generic_drivable_areas",
+    "lane_groups_polygons",
+    "road_segments",
+    "vehicle",
+    "road_divider"
+  ],
+  "npz": "120523.npz",
+  "png": "120523.png",
+  "gif": "120523.gif",
+  "bev_shape": [
+    16,
+    18,
+    200,
+    200
+  ]
+}

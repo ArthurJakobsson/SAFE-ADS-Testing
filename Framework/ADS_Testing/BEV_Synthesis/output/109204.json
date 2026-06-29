@@ -1,0 +1,55 @@
+{
+  "case_id": "109204",
+  "road_type": "Merging",
+  "n_lanes": 5,
+  "stem": null,
+  "animated": true,
+  "frames": 16,
+  "fps": 8,
+  "agents": [
+    {
+      "label": "V1",
+      "is_ego": true,
+      "cx": -5.3,
+      "cy": -1.75,
+      "yaw_deg": 0.0,
+      "speed_mph": 50.0,
+      "action": "Move forward and begin a left turn",
+      "size": [
+        4.6,
+        1.85
+      ]
+    },
+    {
+      "label": "V2",
+      "is_ego": false,
+      "cx": -12.6,
+      "cy": -5.25,
+      "yaw_deg": 0.0,
+      "speed_mph": 50.0,
+      "action": "Move forward and approach the intersection",
+      "size": [
+        5.2,
+        2.0
+      ]
+    }
+  ],
+  "channels_used": [
+    "generic_drivable_areas",
+    "lane_group_connectors",
+    "lane_groups_polygons",
+    "road_segments",
+    "vehicle",
+    "lane_divider",
+    "road_divider"
+  ],
+  "npz": "109204.npz",
+  "png": "109204.png",
+  "gif": "109204.gif",
+  "bev_shape": [
+    16,
+    18,
+    200,
+    200
+  ]
+}

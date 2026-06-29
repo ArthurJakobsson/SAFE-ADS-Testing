@@ -1,0 +1,5 @@
+Sketch.jpg NOT downloaded from this environment: the GetBinary.aspx image
+endpoint is reachable and returns Content-Type 'img/jpg' for ImageID 555113862
+(URL: https://crashviewer.nhtsa.dot.gov/crashviewer/nass-CIREN/GetBinary.aspx?Image&ImageID=555113862&CaseID=109204&Version=0),
+but image BYTES could not be pulled because Akamai 403-blocks this datacenter IP.
+Run ciren_scraper.py from a normal network (or with --selenium) to fetch it.

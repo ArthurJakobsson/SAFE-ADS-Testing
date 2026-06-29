@@ -1,0 +1,513 @@
+{
+  "cases": [
+    {
+      "case_id": "120523",
+      "road_type": "Straight",
+      "n_lanes": 2,
+      "stem": null,
+      "animated": true,
+      "frames": 16,
+      "fps": 8,
+      "agents": [
+        {
+          "label": "V1",
+          "is_ego": true,
+          "cx": -5.3,
+          "cy": -1.75,
+          "yaw_deg": 0.0,
+          "speed_mph": 25.0,
+          "action": "Move forward",
+          "size": [
+            4.6,
+            1.85
+          ]
+        },
+        {
+          "label": "V2",
+          "is_ego": false,
+          "cx": 5.35,
+          "cy": 1.75,
+          "yaw_deg": 180.0,
+          "speed_mph": 25.0,
+          "action": "Move forward",
+          "size": [
+            4.7,
+            1.9
+          ]
+        }
+      ],
+      "channels_used": [
+        "generic_drivable_areas",
+        "lane_groups_polygons",
+        "road_segments",
+        "vehicle",
+        "road_divider"
+      ],
+      "npz": "120523.npz",
+      "png": "120523.png",
+      "gif": "120523.gif",
+      "bev_shape": [
+        16,
+        18,
+        200,
+        200
+      ]
+    },
+    {
+      "case_id": "109204",
+      "road_type": "Merging",
+      "n_lanes": 5,
+      "stem": null,
+      "animated": true,
+      "frames": 16,
+      "fps": 8,
+      "agents": [
+        {
+          "label": "V1",
+          "is_ego": true,
+          "cx": -5.3,
+          "cy": -1.75,
+          "yaw_deg": 0.0,
+          "speed_mph": 50.0,
+          "action": "Move forward and begin a left turn",
+          "size": [
+            4.6,
+            1.85
+          ]
+        },
+        {
+          "label": "V2",
+          "is_ego": false,
+          "cx": -12.6,
+          "cy": -5.25,
+          "yaw_deg": 0.0,
+          "speed_mph": 50.0,
+          "action": "Move forward and approach the intersection",
+          "size": [
+            5.2,
+            2.0
+          ]
+        }
+      ],
+      "channels_used": [
+        "generic_drivable_areas",
+        "lane_group_connectors",
+        "lane_groups_polygons",
+        "road_segments",
+        "vehicle",
+        "lane_divider",
+        "road_divider"
+      ],
+      "npz": "109204.npz",
+      "png": "109204.png",
+      "gif": "109204.gif",
+      "bev_shape": [
+        16,
+        18,
+        200,
+        200
+      ]
+    },
+    {
+      "case_id": "117330",
+      "road_type": "Straight",
+      "n_lanes": 2,
+      "stem": null,
+      "animated": true,
+      "frames": 16,
+      "fps": 8,
+      "agents": [
+        {
+          "label": "V1",
+          "is_ego": true,
+          "cx": 5.3,
+          "cy": 1.75,
+          "yaw_deg": 180.0,
+          "speed_mph": 25.0,
+          "action": "Rotate Counterclockwise",
+          "size": [
+            4.6,
+            1.85
+          ]
+        },
+        {
+          "label": "V2",
+          "is_ego": false,
+          "cx": -5.3,
+          "cy": -1.75,
+          "yaw_deg": 0.0,
+          "speed_mph": 25.0,
+          "action": "Rotate Counterclockwise",
+          "size": [
+            4.6,
+            1.85
+          ]
+        }
+      ],
+      "channels_used": [
+        "generic_drivable_areas",
+        "lane_groups_polygons",
+        "road_segments",
+        "vehicle",
+        "road_divider"
+      ],
+      "npz": "117330.npz",
+      "png": "117330.png",
+      "gif": "117330.gif",
+      "bev_shape": [
+        16,
+        18,
+        200,
+        200
+      ]
+    },
+    {
+      "case_id": "115565",
+      "road_type": "Straight",
+      "n_lanes": 2,
+      "stem": null,
+      "animated": true,
+      "frames": 16,
+      "fps": 8,
+      "agents": [
+        {
+          "label": "V1",
+          "is_ego": true,
+          "cx": -5.4,
+          "cy": -1.75,
+          "yaw_deg": 0.0,
+          "speed_mph": 25.0,
+          "action": "Stop, Move forward",
+          "size": [
+            4.8,
+            1.95
+          ]
+        },
+        {
+          "label": "V2",
+          "is_ego": false,
+          "cx": -1.75,
+          "cy": 5.4,
+          "yaw_deg": -90.0,
+          "speed_mph": 25.0,
+          "action": "Stop, Move forward",
+          "size": [
+            4.8,
+            1.95
+          ]
+        }
+      ],
+      "channels_used": [
+        "generic_drivable_areas",
+        "lane_groups_polygons",
+        "road_segments",
+        "vehicle",
+        "road_divider"
+      ],
+      "npz": "115565.npz",
+      "png": "115565.png",
+      "gif": "115565.gif",
+      "bev_shape": [
+        16,
+        18,
+        200,
+        200
+      ]
+    },
+    {
+      "case_id": "117021",
+      "road_type": "Intersection",
+      "n_lanes": 3,
+      "stem": null,
+      "animated": true,
+      "frames": 16,
+      "fps": 8,
+      "agents": [
+        {
+          "label": "V1",
+          "is_ego": true,
+          "cx": -1.75,
+          "cy": 5.3,
+          "yaw_deg": -90.0,
+          "speed_mph": 45.0,
+          "action": "Move forward",
+          "size": [
+            4.6,
+            1.85
+          ]
+        },
+        {
+          "label": "V2",
+          "is_ego": false,
+          "cx": -5.4,
+          "cy": -1.75,
+          "yaw_deg": 0.0,
+          "speed_mph": 45.0,
+          "action": "Move forward",
+          "size": [
+            4.8,
+            1.95
+          ]
+        }
+      ],
+      "channels_used": [
+        "intersections",
+        "generic_drivable_areas",
+        "crosswalks",
+        "lane_groups_polygons",
+        "road_segments",
+        "vehicle",
+        "lane_divider",
+        "road_divider"
+      ],
+      "npz": "117021.npz",
+      "png": "117021.png",
+      "gif": "117021.gif",
+      "bev_shape": [
+        16,
+        18,
+        200,
+        200
+      ]
+    },
+    {
+      "case_id": "119946",
+      "road_type": "Curve",
+      "n_lanes": 2,
+      "stem": null,
+      "animated": true,
+      "frames": 16,
+      "fps": 8,
+      "agents": [
+        {
+          "label": "V1",
+          "is_ego": true,
+          "cx": -1.75,
+          "cy": 5.3,
+          "yaw_deg": -90.0,
+          "speed_mph": 25.0,
+          "action": "Move forward",
+          "size": [
+            4.6,
+            1.85
+          ]
+        },
+        {
+          "label": "V2",
+          "is_ego": false,
+          "cx": 9.0,
+          "cy": 1.75,
+          "yaw_deg": 180.0,
+          "speed_mph": 25.0,
+          "action": "Move forward",
+          "size": [
+            12.0,
+            2.5
+          ]
+        }
+      ],
+      "channels_used": [
+        "generic_drivable_areas",
+        "lane_groups_polygons",
+        "road_segments",
+        "vehicle",
+        "road_divider"
+      ],
+      "npz": "119946.npz",
+      "png": "119946.png",
+      "gif": "119946.gif",
+      "bev_shape": [
+        16,
+        18,
+        200,
+        200
+      ]
+    },
+    {
+      "case_id": "121520",
+      "road_type": "T-intersection",
+      "n_lanes": 5,
+      "stem": "North",
+      "animated": true,
+      "frames": 16,
+      "fps": 8,
+      "agents": [
+        {
+          "label": "V1",
+          "is_ego": true,
+          "cx": -1.75,
+          "cy": 5.3,
+          "yaw_deg": -90.0,
+          "speed_mph": 56.0,
+          "action": "Move forward",
+          "size": [
+            4.6,
+            1.85
+          ]
+        },
+        {
+          "label": "V2",
+          "is_ego": false,
+          "cx": -5.25,
+          "cy": 12.4,
+          "yaw_deg": -90.0,
+          "speed_mph": 56.0,
+          "action": "Turn left",
+          "size": [
+            4.8,
+            1.95
+          ]
+        }
+      ],
+      "channels_used": [
+        "intersections",
+        "generic_drivable_areas",
+        "lane_groups_polygons",
+        "road_segments",
+        "vehicle",
+        "lane_divider",
+        "road_divider"
+      ],
+      "npz": "121520.npz",
+      "png": "121520.png",
+      "gif": "121520.gif",
+      "bev_shape": [
+        16,
+        18,
+        200,
+        200
+      ]
+    },
+    {
+      "case_id": "119489",
+      "road_type": "Straight",
+      "n_lanes": 2,
+      "stem": null,
+      "animated": true,
+      "frames": 16,
+      "fps": 8,
+      "agents": [
+        {
+          "label": "V1",
+          "is_ego": true,
+          "cx": -5.3,
+          "cy": -1.75,
+          "yaw_deg": 0.0,
+          "speed_mph": 25.0,
+          "action": "Stop",
+          "size": [
+            4.6,
+            1.85
+          ]
+        },
+        {
+          "label": "V2",
+          "is_ego": false,
+          "cx": -1.75,
+          "cy": 5.3,
+          "yaw_deg": -90.0,
+          "speed_mph": 25.0,
+          "action": "Move Forward",
+          "size": [
+            4.6,
+            1.85
+          ]
+        }
+      ],
+      "channels_used": [
+        "generic_drivable_areas",
+        "lane_groups_polygons",
+        "road_segments",
+        "vehicle",
+        "road_divider"
+      ],
+      "npz": "119489.npz",
+      "png": "119489.png",
+      "gif": "119489.gif",
+      "bev_shape": [
+        16,
+        18,
+        200,
+        200
+      ]
+    }
+  ],
+  "legend": [
+    [
+      "intersections",
+      "#545a82"
+    ],
+    [
+      "generic_drivable_areas",
+      "#788296"
+    ],
+    [
+      "walkways",
+      "#e31a1c"
+    ],
+    [
+      "carpark_areas",
+      "#ff7f00"
+    ],
+    [
+      "crosswalks",
+      "#fb9a99"
+    ],
+    [
+      "lane_group_connectors",
+      "#668c6e"
+    ],
+    [
+      "lane_groups_polygons",
+      "#6e788c"
+    ],
+    [
+      "road_segments",
+      "#5a5f69"
+    ],
+    [
+      "vehicle",
+      "#ff9e00"
+    ],
+    [
+      "bicycle",
+      "#dc143c"
+    ],
+    [
+      "pedestrian",
+      "#0078e6"
+    ],
+    [
+      "traffic_cone",
+      "#2f4f4f"
+    ],
+    [
+      "barrier",
+      "#708090"
+    ],
+    [
+      "czone_sign",
+      "#e99646"
+    ],
+    [
+      "generic_object",
+      "#a0a0a0"
+    ],
+    [
+      "lane_divider",
+      "#c8c8c8"
+    ],
+    [
+      "crosswalk_line",
+      "#f5f5f5"
+    ],
+    [
+      "road_divider",
+      "#ffd200"
+    ],
+    [
+      "ego",
+      "#3cdc5a"
+    ]
+  ]
+}

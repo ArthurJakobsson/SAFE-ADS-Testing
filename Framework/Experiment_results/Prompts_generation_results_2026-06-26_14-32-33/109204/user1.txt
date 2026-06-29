@@ -1,0 +1,81 @@
+# Analysis Process
+
+## Step 1: Extract Actors Information
+
+1. **Vehicle Entity Recognition**
+   Based on the provided crash summary, there are two vehicles involved. Therefore, under the Actors field, include both *Vehicle_1* and *Vehicle_2*.
+
+2. **Vehicle Model Recognition**
+   - **Vehicle_1**:
+     - **Description:** “a 2000 Pontiac Sunfire, 2-door coupe”
+     - **Assigned Model:** Sedan
+
+   - **Vehicle_2**:
+     - **Description:** “a 1999 Dodge Ram conversion van”
+     - **Assigned Model:** Minivan
+
+3. **Vehicle Movement Behavior Recognition**
+   From the crash summary and the sketch details:
+   - **Vehicle_1** was traveling east in the right eastbound lane of a six-lane divided, limited access freeway. **Vehicle_1**‘s action is Move forward.
+   - **Vehicle_2** was traveling east in the eastbound lane of an entrance ramp and was attempting to enter the same freeway that V1 was traveling on. **Vehicle_2**‘s action is Merge.
+   Therefore, the Initial position of **Vehicle_1** is Main road and the Initial position of **Vehicle_2** is On-ramp. This can also be confirmed from the accident sketch provided.
+   - The summary does not state Vehicle_1 and Vehicle_2's speed, but the **sketch** shows 'Speed limit = 70 mph'. Therefore, assume:
+     - **Vehicle_1 Speed:** 70 mph
+     - **Vehicle_2 Speed:** 70 mph
+
+   **Final Assignments:**
+   - **Vehicle_1:**
+     - *Initial Position:* Main road
+     - *Actions:* Move forward
+     - *Speed:* 70
+   - **Vehicle_2:**
+     - *Initial Position:* On-ramp
+     - *Actions:* Merge
+     - *Speed:* 70
+
+---
+
+## Step 2: Extract Road Network
+
+- The summary indicates a six-lane divided, limited access freeway.
+- **Number of Lanes:** 6
+
+---
+
+## Step 3: Extract Environment
+
+- The summary states “It was daylight and raining”
+- **Time:** Daytime
+- **Weather:** Rainy
+
+---
+
+## Final Output
+
+```json
+{
+  "Actors": [
+    {
+      "Vehicle_1": {
+        "Model": "Sedan",
+        "Initial_position": "Main road",
+        "Actions": "Move forward",
+        "Speed": "70"
+      },
+      "Vehicle_2": {
+        "Model": "Minivan",
+        "Initial_position": "On-ramp",
+        "Actions": "Merge",
+        "Speed": "70"
+      }
+    }
+  ],
+  "Road network": {
+    "Number of lanes": "6"
+  },
+  "Env": {
+    "Time": "Daytime",
+    "Weather": "Rainy"
+  }
+}
+```

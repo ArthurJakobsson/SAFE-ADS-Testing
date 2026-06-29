@@ -1,0 +1,68 @@
+[
+  {
+    "case_id": "3-C1-2017-001",
+    "cirenId": 12,
+    "caseid": 8396,
+    "status": "ok",
+    "note": "",
+    "summary_path": "/home/adteam/Documents/SAFE-ADS-Testing/Framework/Crash_dataset_CIREN2017/3-C1-2017-001/Summary.txt",
+    "sketch_path": "/home/adteam/Documents/SAFE-ADS-Testing/Framework/Crash_dataset_CIREN2017/3-C1-2017-001/Sketch.jpg",
+    "summary_chars": 3758,
+    "sketch_bytes": 182898
+  },
+  {
+    "case_id": "3-C1-2017-004",
+    "cirenId": 14,
+    "caseid": 8443,
+    "status": "ok",
+    "note": "",
+    "summary_path": "/home/adteam/Documents/SAFE-ADS-Testing/Framework/Crash_dataset_CIREN2017/3-C1-2017-004/Summary.txt",
+    "sketch_path": "/home/adteam/Documents/SAFE-ADS-Testing/Framework/Crash_dataset_CIREN2017/3-C1-2017-004/Sketch.jpg",
+    "summary_chars": 2749,
+    "sketch_bytes": 145991
+  },
+  {
+    "case_id": "3-C1-2017-005",
+    "cirenId": 15,
+    "caseid": 8460,
+    "status": "fail",
+    "note": "scene not a PDF (HTTP 200)",
+    "summary_path": "/home/adteam/Documents/SAFE-ADS-Testing/Framework/Crash_dataset_CIREN2017/3-C1-2017-005/Summary.txt",
+    "sketch_path": "/home/adteam/Documents/SAFE-ADS-Testing/Framework/Crash_dataset_CIREN2017/3-C1-2017-005/Sketch.jpg",
+    "summary_chars": 2929,
+    "sketch_bytes": 0
+  },
+  {
+    "case_id": "3-C2-2017-001",
+    "cirenId": 16,
+    "caseid": 8529,
+    "status": "ok",
+    "note": "",
+    "summary_path": "/home/adteam/Documents/SAFE-ADS-Testing/Framework/Crash_dataset_CIREN2017/3-C2-2017-001/Summary.txt",
+    "sketch_path": "/home/adteam/Documents/SAFE-ADS-Testing/Framework/Crash_dataset_CIREN2017/3-C2-2017-001/Sketch.jpg",
+    "summary_chars": 2900,
+    "sketch_bytes": 107338
+  },
+  {
+    "case_id": "3-C2-2017-002",
+    "cirenId": 17,
+    "caseid": 8530,
+    "status": "ok",
+    "note": "",
+    "summary_path": "/home/adteam/Documents/SAFE-ADS-Testing/Framework/Crash_dataset_CIREN2017/3-C2-2017-002/Summary.txt",
+    "sketch_path": "/home/adteam/Documents/SAFE-ADS-Testing/Framework/Crash_dataset_CIREN2017/3-C2-2017-002/Sketch.jpg",
+    "summary_chars": 2269,
+    "sketch_bytes": 90446
+  },
+  {
+    "case_id": "3-C4-2017-002",
+    "cirenId": 11,
+    "caseid": 8392,
+    "status": "ok",
+    "note": "",
+    "summary_path": "/home/adteam/Documents/SAFE-ADS-Testing/Framework/Crash_dataset_CIREN2017/3-C4-2017-002/Summary.txt",
+    "sketch_path": "/home/adteam/Documents/SAFE-ADS-Testing/Framework/Crash_dataset_CIREN2017/3-C4-2017-002/Sketch.jpg",
+    "summary_chars": 2836,
+    "sketch_bytes": 82583
+  }
+]
