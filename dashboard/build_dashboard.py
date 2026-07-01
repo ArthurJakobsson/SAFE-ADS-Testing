@@ -24,6 +24,8 @@ import sys
 REPO = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 FRAMEWORK = os.path.join(REPO, "Framework")
 BEV_OUT = os.path.join(FRAMEWORK, "ADS_Testing", "BEV_Synthesis", "output")
+# CIREN -> UniScene pilot dataset (run_ciren_dataset.sh pilot). Lives off-repo; scanned if present.
+PILOT_ROOT = os.environ.get("PILOT_ROOT", "/mnt/disk2/CIREN_dataset/CIREN_uniscene_v2")
 
 
 def _b64(path, mime):
@@ -56,7 +58,7 @@ def _load_pickle(path):
 
 
 def collect():
-    data = {"status": {}, "cases": [], "demos": [], "legend": []}
+    data = {"status": {}, "cases": [], "demos": [], "legend": [], "pilot": []}
 
     # --- env / status ---
     data["status"] = {
@@ -117,6 +119,14 @@ def collect():
         summ = os.path.join(cdir, "Summary.txt")
         summary = open(summ, encoding="utf-8", errors="ignore").read() if os.path.exists(summ) else None
         bev = bev_by_case.get(cid)
+        # UniScene-v2 styled views: scene-centred + one ego-centric view per vehicle (animated GIFs)
+        uni_views = []
+        scene_gif = os.path.join(BEV_OUT, f"{cid}_uniscene.gif")
+        if os.path.exists(scene_gif):
+            uni_views.append({"label": "scene", "src": _img(scene_gif)})
+        for ego in sorted(glob.glob(os.path.join(BEV_OUT, f"{cid}_ego_*.gif"))):
+            label = os.path.basename(ego)[len(cid) + len("_ego_"):-len(".gif")]
+            uni_views.append({"label": label, "src": _img(ego)})
         data["cases"].append({
             "case_id": cid,
             "sketch": _img(os.path.join(cdir, "Sketch.jpg")),
@@ -125,12 +135,36 @@ def collect():
             "dsl": dsl_by_case.get(cid),
             "bev_png": bev["png"] if bev else None,
             "bev_info": bev["info"] if bev else None,
+            "uni_views": uni_views,
         })
 
     # --- demo BEVs (case ids starting with demo_) ---
     for cid, bev in sorted(bev_by_case.items()):
         if cid.startswith("demo_"):
             data["demos"].append({"case_id": cid, "bev_png": bev["png"], "bev_info": bev["info"]})
+
+    # --- CIREN->UniScene pilot: per-case BEV + per-object height tag ---
+    for sp in sorted(glob.glob(os.path.join(PILOT_ROOT, "samples", "*", "*", "pkl_records.pkl"))):
+        rec = _load_pickle(sp)
+        if not rec:
+            continue
+        sd = os.path.dirname(sp)
+        names = rec.get("nuscenes_names") or []
+        models = rec.get("models") or []
+        heights = rec.get("heights") or []
+        n = max(len(names), len(models), len(heights))
+        objs = [{"label": f"V{i + 1}",
+                 "name": (models[i] if i < len(models) and models[i] else
+                          (names[i] if i < len(names) else "?")),
+                 "height": round(float(heights[i]), 2) if i < len(heights) else None}
+                for i in range(n)]
+        scene_gif = _newest(os.path.join(sd, "scene", "*_uniscene.gif"))
+        data["pilot"].append({
+            "case_id": rec.get("case_id", os.path.basename(sd)),
+            "road_type": rec.get("road_type"),
+            "bev": _img(scene_gif),
+            "objects": objs,
+        })
 
     return data
 
@@ -187,6 +221,16 @@ function caseCard(c){
  const t=$('span','tag '+(c.dsl?'ok':(c.bev_png?'warn':''))); t.textContent=c.dsl?'DSL ✓':(c.bev_png?'BEV only':'input only'); h.append(t);
  card.append(h);
  const r1=$('div','row'); r1.append(imgCol('input sketch',c.sketch)); r1.append(imgCol('synth BEV (nuPlan-style)',c.bev_png)); card.append(r1);
+ if(c.uni_views&&c.uni_views.length){
+   const col=$('div','col'); col.append(Object.assign($('p','lbl'),{textContent:'UniScene-v2 BEV — pick ego'}));
+   const w=$('div','imgwrap'); const im=$('img','',{src:c.uni_views[0].src}); w.append(im); col.append(w);
+   const bar=$('div','meta');
+   const setOn=b=>{bar.querySelectorAll('.chip').forEach(x=>{x.style.background='';x.style.color='';});
+     b.style.background='var(--acc)';b.style.color='#06222e';};
+   c.uni_views.forEach((v,idx)=>{const b=$('span','chip');
+     b.textContent=(v.label==='scene'?'scene':v.label+' ego'); b.style.cursor='pointer';
+     b.onclick=()=>{im.src=v.src; setOn(b);}; if(idx===0)setOn(b); bar.append(b);});
+   const r=$('div','row'); r.append(col); card.append(r); card.append(bar);}
  if(c.meta){const m=$('div','meta');
    m.append(Object.assign($('span','chip'),{textContent:'road: '+c.meta.road_type}));
    m.append(Object.assign($('span','chip'),{textContent:'cars: '+c.meta.num_cars}));
@@ -207,6 +251,13 @@ function demoCard(d){const card=$('div','card');const h=$('h3');h.append(Object.
  if(d.bev_info){const m=$('div','meta');(d.bev_info.agents||[]).forEach(a=>m.append(Object.assign($('span','chip'),{textContent:a.label+(a.is_ego?' (ego)':'')+' @'+a.yaw_deg+'°'})));
    m.append(Object.assign($('span','chip'),{textContent:'lanes: '+d.bev_info.n_lanes}));card.append(m);}
  return card;}
+function pilotCard(p){const card=$('div','card');const h=$('h3');
+ h.append(Object.assign($('span'),{textContent:p.case_id}));
+ if(p.road_type){const t=$('span','tag ok');t.textContent=p.road_type;h.append(t);}card.append(h);
+ const r=$('div','row');r.append(imgCol('UniScene BEV',p.bev));card.append(r);
+ const m=$('div','meta');(p.objects||[]).forEach(o=>m.append(Object.assign($('span','chip'),
+   {textContent:o.label+' · '+o.name+' · '+(o.height!=null?o.height+' m':'?')})));card.append(m);
+ return card;}
 function legend(items){if(!items||!items.length)return null;const l=$('div','legend');
  items.forEach(([n,c])=>{const s=$('span');const i=$('i');i.style.background=c;s.append(i);s.append(document.createTextNode(n));l.append(s)});return l;}
 
@@ -218,7 +269,8 @@ function legend(items){if(!items||!items.length)return null;const l=$('div','leg
    '<span><b>'+DATA.cases.length+'</b> crash cases</span>'+
    '<span><b>'+DATA.cases.filter(c=>c.dsl).length+'</b> with DSL</span>'+
    '<span><b>'+DATA.cases.filter(c=>c.bev_png).length+'</b> with BEV</span>'+
-   '<span><b>'+DATA.demos.length+'</b> demo BEVs</span>';
+   '<span><b>'+DATA.demos.length+'</b> demo BEVs</span>'+
+   (DATA.pilot&&DATA.pilot.length?'<span><b>'+DATA.pilot.length+'</b> pilot cases (height-tagged)</span>':'');
 
  const A=document.getElementById('secA');
  const lg=legend(DATA.legend); if(lg)A.append(lg);
@@ -232,7 +284,14 @@ function legend(items){if(!items||!items.length)return null;const l=$('div','leg
  const gd=$('div','grid'); DATA.demos.forEach(d=>gd.append(demoCard(d))); D.append(gd);
  if(!DATA.demos.length)D.append(Object.assign($('div','empty'),{textContent:'No demo BEVs. Run: bev_from_dsl.py --demo'}));
 
- const secs={A:'secA',D:'secD'};
+ const P=document.getElementById('secP');
+ if(P){
+  P.append(Object.assign($('p','note'),{textContent:'CIREN→UniScene pilot — per-object roof height (m) tagged on each moving object.'}));
+  const gp=$('div','grid'); DATA.pilot.forEach(p=>gp.append(pilotCard(p))); P.append(gp);
+  if(!DATA.pilot.length)P.append(Object.assign($('div','empty'),{textContent:'No pilot data.'}));
+ }
+
+ const secs={A:'secA',D:'secD'}; if(P)secs.P='secP';
  document.querySelectorAll('nav button').forEach(b=>b.onclick=()=>{
    document.querySelectorAll('nav button').forEach(x=>x.classList.remove('on'));b.classList.add('on');
    for(const k in secs)document.getElementById(secs[k]).classList.remove('on');
@@ -248,12 +307,16 @@ def main():
     args = ap.parse_args()
 
     data = collect()
-    nav = ('<nav><button class=on data-s=A>SAFE pipeline</button>'
-           '<button data-s=D>Demo BEVs</button></nav>')
+    buttons = ['<button class=on data-s=A>SAFE pipeline</button>',
+               '<button data-s=D>Demo BEVs</button>']
+    sections = ['<section class=on id=secA></section>', '<section id=secD></section>']
+    if data["pilot"]:
+        buttons.append('<button data-s=P>CIREN pilot · heights</button>')
+        sections.append('<section id=secP></section>')
+    nav = '<nav>' + ''.join(buttons) + '</nav>'
     header = ('<header><h1>SAFE <small>crash → DSL → nuPlan-style BEV</small></h1>'
               '<div class=status id=st></div>' + nav + '</header>')
-    main_html = ('<main><section class=on id=secA></section>'
-                 '<section id=secD></section></main>')
+    main_html = '<main>' + ''.join(sections) + '</main>'
     html = HEAD + header + main_html + \
         "<script>const DATA=" + json.dumps(data) + ";</script>" + BODY_JS
 

@@ -2,3 +2,8 @@ __pycache__/
 *.pyc
 *.pyo
 .DS_Store
+
+# Generated / transient CIREN pipeline artifacts (code is tracked; outputs are regenerable)
+Framework/ADS_Testing/BEV_Synthesis/output/
+Framework/ADS_Testing/BEV_Synthesis/uniscene_npz/
+Framework/Crash_dataset/3-C1-*
